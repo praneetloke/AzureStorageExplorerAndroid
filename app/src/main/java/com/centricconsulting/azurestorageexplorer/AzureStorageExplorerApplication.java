@@ -5,7 +5,7 @@ import android.app.Application;
 import com.centricconsulting.azurestorageexplorer.storage.AzureStorageAccountSQLiteHelper;
 
 /**
- * Created by v-prloke on 4/9/2016.
+ * Created by Praneet Loke on 4/9/2016.
  */
 public class AzureStorageExplorerApplication extends Application {
 

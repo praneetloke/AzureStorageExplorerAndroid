@@ -6,7 +6,7 @@ import android.widget.TextView;
 import java.util.ArrayList;
 
 /**
- * Created by v-prloke on 4/16/2016.
+ * Created by Praneet Loke on 4/16/2016.
  */
 public abstract class LinearRecyclerViewAdapter<T> extends RecyclerView.Adapter<LinearRecyclerViewAdapter.ViewHolder> {
     private ArrayList<T> dataset;

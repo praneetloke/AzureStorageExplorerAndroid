@@ -5,7 +5,7 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 
 /**
- * Created by v-prloke on 4/15/2016.
+ * Created by Praneet Loke on 4/15/2016.
  */
 public class ActivityUtils {
     public static void addFragmentToActivity(FragmentManager fragmentManager, Fragment fragment, int frameId, String fragmentTag) {

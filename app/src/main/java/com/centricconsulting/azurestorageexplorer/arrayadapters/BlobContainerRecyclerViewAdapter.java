@@ -9,7 +9,7 @@ import com.microsoft.azure.storage.blob.CloudBlobContainer;
 import java.util.ArrayList;
 
 /**
- * Created by v-prloke on 4/16/2016.
+ * Created by Praneet Loke on 4/16/2016.
  */
 public class BlobContainerRecyclerViewAdapter extends LinearRecyclerViewAdapter<CloudBlobContainer> {
 

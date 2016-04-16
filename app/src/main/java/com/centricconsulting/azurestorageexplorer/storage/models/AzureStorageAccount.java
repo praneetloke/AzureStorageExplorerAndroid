@@ -1,7 +1,7 @@
 package com.centricconsulting.azurestorageexplorer.storage.models;
 
 /**
- * Created by v-prloke on 4/10/2016.
+ * Created by Praneet Loke on 4/10/2016.
  */
 public class AzureStorageAccount {
 

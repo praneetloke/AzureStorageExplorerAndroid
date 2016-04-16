@@ -13,7 +13,7 @@ import com.centricconsulting.azurestorageexplorer.storage.models.AzureStorageAcc
 import java.util.ArrayList;
 
 /**
- * Created by v-prloke on 4/10/2016.
+ * Created by Praneet Loke on 4/10/2016.
  */
 public class SpinnerArrayAdapter extends ArrayAdapter<AzureStorageAccount> {
     private ArrayList<AzureStorageAccount> accounts;
