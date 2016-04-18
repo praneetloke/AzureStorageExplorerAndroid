@@ -1,4 +1,4 @@
-package com.centricconsulting.azurestorageexplorer.storage.models;
+package com.centricconsulting.azurestorageexplorer.models;
 
 /**
  * Created by Praneet Loke on 4/10/2016.

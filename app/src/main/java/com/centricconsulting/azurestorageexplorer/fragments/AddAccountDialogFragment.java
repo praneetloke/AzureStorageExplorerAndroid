@@ -14,8 +14,8 @@ import android.widget.EditText;
 
 import com.centricconsulting.azurestorageexplorer.AzureStorageExplorerApplication;
 import com.centricconsulting.azurestorageexplorer.R;
+import com.centricconsulting.azurestorageexplorer.models.AzureStorageAccount;
 import com.centricconsulting.azurestorageexplorer.storage.AzureStorageAccountSQLiteHelper;
-import com.centricconsulting.azurestorageexplorer.storage.models.AzureStorageAccount;
 
 import java.util.regex.Pattern;
 

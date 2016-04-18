@@ -1,4 +1,4 @@
-package com.centricconsulting.azurestorageexplorer.arrayadapters;
+package com.centricconsulting.azurestorageexplorer.adapter;
 
 import android.support.v7.widget.RecyclerView;
 import android.widget.TextView;

@@ -14,11 +14,11 @@ import java.util.Iterator;
 /**
  * Created by Praneet Loke on 4/16/2016.
  */
-public class BlobListAsyncTask extends AsyncTask<String, Void, ArrayList<CloudBlobContainer>> {
+public class BlobContainerListAsyncTask extends AsyncTask<String, Void, ArrayList<CloudBlobContainer>> {
     private IAsyncTaskCallback callback;
     private String exceptionMessage;
 
-    public BlobListAsyncTask(IAsyncTaskCallback callback) {
+    public BlobContainerListAsyncTask(IAsyncTaskCallback callback) {
         this.callback = callback;
     }
 
@@ -47,7 +47,7 @@ public class BlobListAsyncTask extends AsyncTask<String, Void, ArrayList<CloudBl
     }
 
     protected void onPostExecute(ArrayList<CloudBlobContainer> containers) {
-        if (containers == null) {
+        if (exceptionMessage != null) {
             this.callback.failed(exceptionMessage);
             return;
         }

@@ -1,4 +1,4 @@
-package com.centricconsulting.azurestorageexplorer.arrayadapters;
+package com.centricconsulting.azurestorageexplorer.adapter;
 
 import android.view.LayoutInflater;
 import android.view.ViewGroup;

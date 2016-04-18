@@ -6,7 +6,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
 import com.centricconsulting.azurestorageexplorer.AzureStorageExplorerApplication;
-import com.centricconsulting.azurestorageexplorer.storage.models.AzureStorageAccount;
+import com.centricconsulting.azurestorageexplorer.models.AzureStorageAccount;
 
 import java.util.ArrayList;
 

@@ -15,19 +15,27 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.Spinner;
 
-import com.centricconsulting.azurestorageexplorer.arrayadapters.SpinnerArrayAdapter;
+import com.centricconsulting.azurestorageexplorer.adapter.BlobContainersAdapter;
+import com.centricconsulting.azurestorageexplorer.adapter.StorageAccountAdapter;
+import com.centricconsulting.azurestorageexplorer.asynctask.BlobContainerListAsyncTask;
+import com.centricconsulting.azurestorageexplorer.asynctask.interfaces.IAsyncTaskCallback;
 import com.centricconsulting.azurestorageexplorer.fragments.AddAccountDialogFragment;
-import com.centricconsulting.azurestorageexplorer.fragments.ContainerListFragment;
+import com.centricconsulting.azurestorageexplorer.fragments.BlobListFragment;
 import com.centricconsulting.azurestorageexplorer.fragments.interfaces.ISpinnerNavListener;
-import com.centricconsulting.azurestorageexplorer.storage.models.AzureStorageAccount;
+import com.centricconsulting.azurestorageexplorer.models.AzureStorageAccount;
 import com.centricconsulting.azurestorageexplorer.util.ActivityUtils;
+import com.microsoft.azure.storage.blob.CloudBlobContainer;
 
 import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener, AddAccountDialogFragment.OnFragmentInteractionListener {
+        implements
+        NavigationView.OnNavigationItemSelectedListener,
+        AddAccountDialogFragment.OnFragmentInteractionListener,
+        IAsyncTaskCallback<ArrayList<CloudBlobContainer>> {
 
-    private SpinnerArrayAdapter spinnerAdapter;
+    private StorageAccountAdapter storageAccountAdapter;
+    private BlobContainersAdapter blobContainersAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -59,19 +67,43 @@ public class MainActivity extends AppCompatActivity
         navigationView.setNavigationItemSelectedListener(this);
 
         ArrayList<AzureStorageAccount> accounts = AzureStorageExplorerApplication.getAzureStorageAccountSQLiteHelper().getAzureAccounts();
+        storageAccountAdapter = new StorageAccountAdapter(getApplicationContext(), accounts);
+        //setup the spinner in the drawer layout header
+        Spinner navBarHeaderSpinner = (Spinner) navigationView.getHeaderView(0).findViewById(R.id.navBarHeaderSpinner);
+        navBarHeaderSpinner.setAdapter(storageAccountAdapter);
+        navBarHeaderSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                final AzureStorageAccount account = storageAccountAdapter.getItem(position);
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        BlobContainerListAsyncTask containerListAsyncTask = new BlobContainerListAsyncTask(MainActivity.this);
+                        containerListAsyncTask.execute(account.getName(), account.getKey());
+                    }
+                }).start();
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+
+            }
+        });
+
+        blobContainersAdapter = new BlobContainersAdapter(getApplicationContext(), new ArrayList<CloudBlobContainer>() {
+        });
         Spinner spinnerNav = (Spinner) toolbar.findViewById(R.id.spinner_nav);
-        spinnerAdapter = new SpinnerArrayAdapter(getApplicationContext(), accounts);
-        spinnerNav.setAdapter(spinnerAdapter);
+        spinnerNav.setAdapter(blobContainersAdapter);
         spinnerNav.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                final AzureStorageAccount account = spinnerAdapter.getItem(position);
-                final Fragment fragment = MainActivity.this.getSupportFragmentManager().findFragmentByTag(ContainerListFragment.class.getName());
+                final CloudBlobContainer container = blobContainersAdapter.getItem(position);
+                final Fragment fragment = MainActivity.this.getSupportFragmentManager().findFragmentByTag(BlobListFragment.class.getName());
                 if (fragment != null) {
                     new Thread(new Runnable() {
                         @Override
                         public void run() {
-                            ((ISpinnerNavListener<AzureStorageAccount>) fragment).selectionChanged(account);
+                            ((ISpinnerNavListener<CloudBlobContainer>) fragment).selectionChanged(container);
                         }
                     }).start();
                 }
@@ -83,8 +115,8 @@ public class MainActivity extends AppCompatActivity
             }
         });
 
-        Fragment containerListFragment = ContainerListFragment.instantiate(getApplicationContext(), ContainerListFragment.class.getName());
-        ActivityUtils.addFragmentToActivity(getSupportFragmentManager(), containerListFragment, R.id.contentFrame, ContainerListFragment.class.getName());
+        Fragment containerListFragment = BlobListFragment.instantiate(getApplicationContext(), BlobListFragment.class.getName());
+        ActivityUtils.addFragmentToActivity(getSupportFragmentManager(), containerListFragment, R.id.contentFrame, BlobListFragment.class.getName());
     }
 
     @Override
@@ -139,7 +171,18 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public void onStorageAccountAdded(AzureStorageAccount account) {
-        spinnerAdapter.add(account);
-        spinnerAdapter.notifyDataSetChanged();
+        storageAccountAdapter.add(account);
+        storageAccountAdapter.notifyDataSetChanged();
+    }
+
+    @Override
+    public void finished(ArrayList<CloudBlobContainer> result) {
+        //received a list of blob containers..load them into the toolbar's spinner
+        blobContainersAdapter.replaceDataset(result);
+    }
+
+    @Override
+    public void failed(String exceptionMessage) {
+
     }
 }
