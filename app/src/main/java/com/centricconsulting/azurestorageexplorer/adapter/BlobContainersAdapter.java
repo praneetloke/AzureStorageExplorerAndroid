@@ -5,7 +5,6 @@ import android.text.TextUtils;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.centricconsulting.azurestorageexplorer.R;
 import com.microsoft.azure.storage.blob.CloudBlobContainer;
@@ -39,14 +38,6 @@ public class BlobContainersAdapter extends SpinnerArrayAdapter<CloudBlobContaine
         }
 
         item.setTag(itemText.getText());
-        item.setLongClickable(true);
-        item.setOnLongClickListener(new View.OnLongClickListener() {
-            @Override
-            public boolean onLongClick(View v) {
-                Toast.makeText(getContext(), v.getTag().toString(), Toast.LENGTH_LONG).show();
-                return true;
-            }
-        });
         return item;
     }
 }

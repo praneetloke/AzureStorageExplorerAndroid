@@ -3,6 +3,7 @@ package com.centricconsulting.azurestorageexplorer;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
@@ -36,6 +37,7 @@ public class MainActivity extends AppCompatActivity
 
     private StorageAccountAdapter storageAccountAdapter;
     private BlobContainersAdapter blobContainersAdapter;
+    private Spinner navBarHeaderSpinner;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -69,7 +71,7 @@ public class MainActivity extends AppCompatActivity
         ArrayList<AzureStorageAccount> accounts = AzureStorageExplorerApplication.getAzureStorageAccountSQLiteHelper().getAzureAccounts();
         storageAccountAdapter = new StorageAccountAdapter(getApplicationContext(), accounts);
         //setup the spinner in the drawer layout header
-        Spinner navBarHeaderSpinner = (Spinner) navigationView.getHeaderView(0).findViewById(R.id.navBarHeaderSpinner);
+        navBarHeaderSpinner = (Spinner) navigationView.getHeaderView(0).findViewById(R.id.navBarHeaderSpinner);
         navBarHeaderSpinner.setAdapter(storageAccountAdapter);
         navBarHeaderSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
@@ -97,13 +99,15 @@ public class MainActivity extends AppCompatActivity
         spinnerNav.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                Snackbar.make(findViewById(R.id.coordinatorLayout), view.getTag().toString(), Snackbar.LENGTH_LONG).show();
+                final AzureStorageAccount account = storageAccountAdapter.getItem(navBarHeaderSpinner.getSelectedItemPosition());
                 final CloudBlobContainer container = blobContainersAdapter.getItem(position);
                 final Fragment fragment = MainActivity.this.getSupportFragmentManager().findFragmentByTag(BlobListFragment.class.getName());
                 if (fragment != null) {
                     new Thread(new Runnable() {
                         @Override
                         public void run() {
-                            ((ISpinnerNavListener<CloudBlobContainer>) fragment).selectionChanged(container);
+                            ((ISpinnerNavListener<CloudBlobContainer>) fragment).selectionChanged(account, container);
                         }
                     }).start();
                 }

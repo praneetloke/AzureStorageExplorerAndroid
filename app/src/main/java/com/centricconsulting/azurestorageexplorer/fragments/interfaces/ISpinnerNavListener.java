@@ -1,8 +1,10 @@
 package com.centricconsulting.azurestorageexplorer.fragments.interfaces;
 
+import com.centricconsulting.azurestorageexplorer.models.AzureStorageAccount;
+
 /**
  * Created by Praneet Loke on 4/16/2016.
  */
 public interface ISpinnerNavListener<T> {
-    void selectionChanged(T item);
+    void selectionChanged(AzureStorageAccount account, T item);
 }
