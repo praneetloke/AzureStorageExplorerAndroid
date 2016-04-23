@@ -38,10 +38,20 @@ public class BlobListAsyncTask extends AsyncTask<String, Void, ArrayList<ListBlo
             CloudBlobContainer container = blobClient.getContainerReference(params[2]);
 
             blobs = new ArrayList<>();
-            // Loop through each blob item in the container.
-            for (ListBlobItem blobItem : container.listBlobs()) {
-                blobs.add(blobItem);
+
+            //if only 3 args were sent, that means we are at the top-level
+            if (params.length == 3) {
+                // Loop through each blob item in the container.
+                for (ListBlobItem blobItem : container.listBlobs()) {
+                    blobs.add(blobItem);
+                }
+            } else {
+                // Loop through each blob item in the blob prefix.
+                for (ListBlobItem blobItem : container.listBlobs(params[3])) {
+                    blobs.add(blobItem);
+                }
             }
+
         } catch (Exception e) {
             exceptionMessage = e.getMessage();
         }

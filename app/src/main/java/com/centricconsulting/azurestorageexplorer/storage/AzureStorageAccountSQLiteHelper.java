@@ -11,7 +11,7 @@ import com.centricconsulting.azurestorageexplorer.models.AzureStorageAccount;
 import java.util.ArrayList;
 
 /**
- * Created by v-prloke on 4/9/2016.
+ * Created by Praneet Loke on 4/9/2016.
  */
 public class AzureStorageAccountSQLiteHelper extends SQLiteOpenHelper {
     public static final String TABLE_NAME = "azure_storage_account";
