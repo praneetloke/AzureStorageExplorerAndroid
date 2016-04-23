@@ -1,7 +1,11 @@
 package com.centricconsulting.azurestorageexplorer.adapter;
 
 import android.support.v7.widget.RecyclerView;
+import android.view.View;
+import android.widget.ImageView;
 import android.widget.TextView;
+
+import com.centricconsulting.azurestorageexplorer.R;
 
 import java.util.ArrayList;
 
@@ -31,11 +35,13 @@ public abstract class LinearRecyclerViewAdapter<T> extends RecyclerView.Adapter<
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
         // each data item is just a string in this case
-        public TextView mTextView;
+        protected TextView mText1;
+        protected ImageView mImageView;
 
-        public ViewHolder(TextView itemView) {
+        public ViewHolder(View itemView) {
             super(itemView);
-            mTextView = itemView;
+            mText1 = (TextView) itemView.findViewById(R.id.text1);
+            mImageView = (ImageView) itemView.findViewById(R.id.icon);
         }
     }
 }
