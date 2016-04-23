@@ -3,6 +3,7 @@ package com.centricconsulting.azurestorageexplorer.adapter;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.centricconsulting.azurestorageexplorer.R;
@@ -38,19 +39,25 @@ public abstract class LinearRecyclerViewAdapter<T> extends RecyclerView.Adapter<
         // each data item is just a string in this case
         protected TextView mText1;
         protected ImageView mImageView;
+        protected LinearLayout mLayout2;
         protected IViewHolderClickListener mListener;
 
         public ViewHolder(View itemView, IViewHolderClickListener viewHolderClickListener) {
             super(itemView);
-            mText1 = (TextView) itemView.findViewById(R.id.text1);
-            mImageView = (ImageView) itemView.findViewById(R.id.icon);
-            itemView.setOnClickListener(this);
             mListener = viewHolderClickListener;
+            LinearLayout layout1 = (LinearLayout) itemView.findViewById(R.id.layout1);
+            mText1 = (TextView) layout1.findViewById(R.id.text1);
+            mImageView = (ImageView) layout1.findViewById(R.id.icon);
+            layout1.setOnClickListener(this);
+
+            mLayout2 = (LinearLayout) itemView.findViewById(R.id.layout2);
+            //set the click listener for the "info" layout
+            mLayout2.setOnClickListener(this);
         }
 
         @Override
         public void onClick(View v) {
-            mListener.onClick(getAdapterPosition());
+            mListener.onClick(v.getId(), getAdapterPosition());
         }
     }
 }

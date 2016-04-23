@@ -46,16 +46,17 @@ public class BlobRecyclerViewAdapter extends LinearRecyclerViewAdapter<ListBlobI
             String name = (!isFolder) ? ((CloudBlob) blobItem).getName() : ((CloudBlobDirectory) blobItem).getPrefix();
             TextView text1 = holder.mText1;
             text1.setText(name);
-            holder.mImageView.setImageResource(Helpers.GetDrawableResourceForBlobType(isFolder, blobItem));
+            holder.mImageView.setImageResource(Helpers.getDrawableResourceForBlobType(isFolder, blobItem));
+            holder.mLayout2.setVisibility(isFolder ? View.GONE : View.VISIBLE);
         } catch (URISyntaxException e) {
             //TODO:
         }
     }
 
     @Override
-    public void onClick(int adapterPosition) {
+    public void onClick(int viewId, int adapterPosition) {
         if (adapterPosition != RecyclerView.NO_POSITION) {
-            recyclerViewAdapterClickListener.onClick(this.getDataset().get(adapterPosition));
+            recyclerViewAdapterClickListener.onClick(viewId, this.getDataset().get(adapterPosition));
         }
     }
 }

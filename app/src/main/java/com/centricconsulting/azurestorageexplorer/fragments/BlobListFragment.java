@@ -17,6 +17,7 @@ import com.centricconsulting.azurestorageexplorer.asynctask.interfaces.IAsyncTas
 import com.centricconsulting.azurestorageexplorer.fragments.interfaces.IBlobItemNavigateListener;
 import com.centricconsulting.azurestorageexplorer.fragments.interfaces.ISpinnerNavListener;
 import com.centricconsulting.azurestorageexplorer.models.AzureStorageAccount;
+import com.centricconsulting.azurestorageexplorer.util.Helpers;
 import com.microsoft.azure.storage.StorageException;
 import com.microsoft.azure.storage.blob.CloudBlobContainer;
 import com.microsoft.azure.storage.blob.CloudBlobDirectory;
@@ -77,13 +78,21 @@ public class BlobListFragment extends Fragment
     }
 
     @Override
-    public void onClick(ListBlobItem item) {
+    public void onClick(int viewId, ListBlobItem item) {
         Bundle fragmentArgs = getArguments();
         if (fragmentArgs == null) {
             Log.e(this.getClass().getName(), "Fragment wasn't initialized with arguments.");
         }
         if (fragmentArgs.getSerializable("fragmentListener") == null) {
             Log.e(this.getClass().getName(), "Fragment arguments bundle does not contain the fragmentListener key.");
+        }
+
+        //if the info icon was clicked, show the info dialog
+        if (viewId == R.id.layout2) {
+            BlobInfoDialogFragment fragment = new BlobInfoDialogFragment();
+            fragment.setArguments(Helpers.getBlobInfoFromListBlobItem(item));
+            fragment.show(getActivity().getSupportFragmentManager(), "BlobInfoDialogFragment");
+            return;
         }
 
         //only tell the parent listener if it is a folder..handle other clicks within

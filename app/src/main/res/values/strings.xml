@@ -11,4 +11,5 @@
     <string name="cancel">Cancel</string>
     <string name="add">Add</string>
     <string name="invalid_name">Invalid name</string>
+    <string name="close">Close</string>
 </resources>
