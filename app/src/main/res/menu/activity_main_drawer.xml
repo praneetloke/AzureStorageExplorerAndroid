@@ -3,7 +3,14 @@
 
     <group android:checkableBehavior="single">
         <item
+            android:id="@+id/blobs"
+            android:checked="true"
+            android:icon="@drawable/ic_blobs"
+            android:title="Blobs" />
+
+        <item
             android:id="@+id/nav_manage"
+            android:checkable="false"
             android:icon="@drawable/ic_menu_manage"
             android:title="Delete account" />
     </group>
