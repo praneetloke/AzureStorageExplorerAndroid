@@ -45,6 +45,10 @@ public class BlobInfoDialogFragment extends DialogFragment {
                         dialog.dismiss();
                     }
                 });
+
+        if (args.containsKey("title")) {
+            builder.setTitle(args.getString("title"));
+        }
         return builder.create();
     }
 }

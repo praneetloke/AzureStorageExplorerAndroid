@@ -6,6 +6,8 @@ import com.centricconsulting.azurestorageexplorer.R;
 import com.microsoft.azure.storage.blob.CloudBlob;
 import com.microsoft.azure.storage.blob.ListBlobItem;
 
+import java.net.URISyntaxException;
+
 /**
  * Created by Praneet Loke on 4/22/2016.
  */
@@ -35,6 +37,11 @@ public class Helpers {
     public static Bundle getBlobInfoFromListBlobItem(ListBlobItem listBlobItem) {
         Bundle args = new Bundle();
         CloudBlob cloudBlob = (CloudBlob) listBlobItem;
+        try {
+            args.putString("title", cloudBlob.getName());
+        } catch (URISyntaxException e) {
+            //ignore
+        }
         args.putString("lastModified", cloudBlob.getProperties().getLastModified().toString());
         args.putString("contentType", cloudBlob.getProperties().getContentType());
         args.putString("cacheControl", cloudBlob.getProperties().getCacheControl());

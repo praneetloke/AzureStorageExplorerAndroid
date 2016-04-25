@@ -41,7 +41,8 @@ public class MainActivity extends AppCompatActivity
 
     private StorageAccountAdapter storageAccountAdapter;
     private BlobContainersAdapter blobContainersAdapter;
-    private Spinner navBarHeaderSpinner;
+    private Spinner navMenuHeaderSpinner;
+    private Spinner toolbarSpinner;
     private Stack<Fragment> fragmentStack;
 
     @Override
@@ -78,9 +79,9 @@ public class MainActivity extends AppCompatActivity
         ArrayList<AzureStorageAccount> accounts = AzureStorageExplorerApplication.getAzureStorageAccountSQLiteHelper().getAzureAccounts();
         storageAccountAdapter = new StorageAccountAdapter(getApplicationContext(), accounts);
         //setup the spinner in the drawer layout header
-        navBarHeaderSpinner = (Spinner) navigationView.getHeaderView(0).findViewById(R.id.navBarHeaderSpinner);
-        navBarHeaderSpinner.setAdapter(storageAccountAdapter);
-        navBarHeaderSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+        navMenuHeaderSpinner = (Spinner) navigationView.getHeaderView(0).findViewById(R.id.navBarHeaderSpinner);
+        navMenuHeaderSpinner.setAdapter(storageAccountAdapter);
+        navMenuHeaderSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 final AzureStorageAccount account = storageAccountAdapter.getItem(position);
@@ -101,13 +102,13 @@ public class MainActivity extends AppCompatActivity
 
         blobContainersAdapter = new BlobContainersAdapter(getApplicationContext(), new ArrayList<CloudBlobContainer>() {
         });
-        Spinner spinnerNav = (Spinner) toolbar.findViewById(R.id.spinner_nav);
-        spinnerNav.setAdapter(blobContainersAdapter);
-        spinnerNav.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+        toolbarSpinner = (Spinner) toolbar.findViewById(R.id.spinner_nav);
+        toolbarSpinner.setAdapter(blobContainersAdapter);
+        toolbarSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 Snackbar.make(findViewById(R.id.coordinatorLayout), view.getTag().toString(), Snackbar.LENGTH_LONG).show();
-                final AzureStorageAccount account = storageAccountAdapter.getItem(navBarHeaderSpinner.getSelectedItemPosition());
+                final AzureStorageAccount account = storageAccountAdapter.getItem(navMenuHeaderSpinner.getSelectedItemPosition());
                 final CloudBlobContainer container = blobContainersAdapter.getItem(position);
                 final Fragment fragment = MainActivity.this.getSupportFragmentManager().findFragmentByTag(BlobListFragment.class.getName());
                 if (fragment != null) {
@@ -149,6 +150,7 @@ public class MainActivity extends AppCompatActivity
             //if we are about to pop the final child fragment, then hide the title again
             if (fragmentStack.size() == 2) {
                 getSupportActionBar().setDisplayShowTitleEnabled(false);
+                toolbarSpinner.setVisibility(View.VISIBLE);
             }
 
             ActivityUtils.popPreviousFragmentFromStack(getSupportFragmentManager(), fragmentStack);
@@ -161,6 +163,11 @@ public class MainActivity extends AppCompatActivity
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.main, menu);
+        if (fragmentStack != null && fragmentStack.size() >= 2) {
+            getSupportActionBar().setDisplayShowTitleEnabled(true);
+            toolbarSpinner.setVisibility(View.GONE);
+        }
+
         return true;
     }
 
@@ -209,14 +216,14 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public void onBlobItemClicked(ListBlobItem blobItem) {
-        getSupportActionBar().setDisplayShowTitleEnabled(true);
-        navBarHeaderSpinner.setVisibility(View.GONE);
+        invalidateOptionsMenu();
+
         Bundle fragmentArgs = new Bundle();
         fragmentArgs.putSerializable("fragmentListener", this);
         Fragment blobListFragment = BlobListFragment.instantiate(getApplicationContext(), BlobListFragment.class.getName(), fragmentArgs);
         ActivityUtils.addFragmentStacked(getSupportFragmentManager(), blobListFragment, R.id.contentFrame, blobItem.getUri().getPath(), fragmentStack);
 
-        AzureStorageAccount account = storageAccountAdapter.getItem(navBarHeaderSpinner.getSelectedItemPosition());
+        AzureStorageAccount account = storageAccountAdapter.getItem(navMenuHeaderSpinner.getSelectedItemPosition());
         ((IBlobItemNavigateListener) blobListFragment).onBlobItemClick(account, blobItem);
     }
 }
