@@ -5,12 +5,9 @@
     <!--Beginning with Android 4.4,
     reading or writing files in your app's private directories does not require the
     READ_EXTERNAL_STORAGE or WRITE_EXTERNAL_STORAGE permissions.-->
-    <uses-permission
-        android:name="android.permission.WRITE_EXTERNAL_STORAGE"
-        android:maxSdkVersion="18" />
-    <uses-permission
-        android:name="android.permission.READ_EXTERNAL_STORAGE"
-        android:maxSdkVersion="18" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.INTERNET" />
 
     <application
         android:name=".AzureStorageExplorerApplication"

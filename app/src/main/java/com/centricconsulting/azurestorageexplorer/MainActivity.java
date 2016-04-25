@@ -146,6 +146,11 @@ public class MainActivity extends AppCompatActivity
         if (drawer.isDrawerOpen(GravityCompat.START)) {
             drawer.closeDrawer(GravityCompat.START);
         } else if (fragmentStack.size() >= 2) {
+            //if we are about to pop the final child fragment, then hide the title again
+            if (fragmentStack.size() == 2) {
+                getSupportActionBar().setDisplayShowTitleEnabled(false);
+            }
+
             ActivityUtils.popPreviousFragmentFromStack(getSupportFragmentManager(), fragmentStack);
         } else {
             super.onBackPressed();
@@ -204,6 +209,8 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public void onBlobItemClicked(ListBlobItem blobItem) {
+        getSupportActionBar().setDisplayShowTitleEnabled(true);
+        navBarHeaderSpinner.setVisibility(View.GONE);
         Bundle fragmentArgs = new Bundle();
         fragmentArgs.putSerializable("fragmentListener", this);
         Fragment blobListFragment = BlobListFragment.instantiate(getApplicationContext(), BlobListFragment.class.getName(), fragmentArgs);

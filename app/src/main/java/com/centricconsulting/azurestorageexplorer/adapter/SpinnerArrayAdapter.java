@@ -6,12 +6,13 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 
 /**
  * Created by Praneet Loke on 4/10/2016.
  */
-public class SpinnerArrayAdapter<T> extends ArrayAdapter<T> {
+public class SpinnerArrayAdapter<T> extends ArrayAdapter<T> implements Serializable {
     private ArrayList<T> dataset;
     private LayoutInflater layoutInflater;
 

@@ -1,7 +1,6 @@
 package com.centricconsulting.azurestorageexplorer.adapter;
 
 import android.content.Context;
-import android.text.TextUtils;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
@@ -31,9 +30,6 @@ public class BlobContainersAdapter extends SpinnerArrayAdapter<CloudBlobContaine
 
         TextView itemText = (TextView) item.findViewById(R.id.spinnerItemText1);
         if (itemText != null) {
-            itemText.setEllipsize(TextUtils.TruncateAt.END);
-            itemText.setWidth(getContext().getResources().getDimensionPixelSize(R.dimen.toolbar_spinner_item_width));
-            itemText.setSingleLine();
             itemText.setText(getDataset().get(position).getName());
         }
 

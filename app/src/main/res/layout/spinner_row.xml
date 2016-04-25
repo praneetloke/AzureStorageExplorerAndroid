@@ -7,9 +7,11 @@
 
     <TextView
         android:id="@+id/spinnerItemText1"
-        android:layout_width="wrap_content"
+        android:layout_width="@dimen/toolbar_spinner_item_width"
         android:layout_height="wrap_content"
         android:layout_margin="10dp"
+        android:ellipsize="end"
+        android:maxLines="1"
         android:textSize="18sp" />
 
 </RelativeLayout>
