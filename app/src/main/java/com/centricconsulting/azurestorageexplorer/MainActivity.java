@@ -216,9 +216,7 @@ public class MainActivity extends AppCompatActivity
     public void onBlobItemClicked(ListBlobItem blobItem) {
         invalidateOptionsMenu();
 
-        Bundle fragmentArgs = new Bundle();
-        fragmentArgs.putSerializable("fragmentListener", this);
-        Fragment blobListFragment = BlobListFragment.instantiate(getApplicationContext(), BlobListFragment.class.getName(), fragmentArgs);
+        Fragment blobListFragment = BlobListFragment.instantiate(getApplicationContext(), BlobListFragment.class.getName());
         ActivityUtils.addFragmentStacked(getSupportFragmentManager(), blobListFragment, R.id.contentFrame, blobItem.getUri().getPath(), fragmentStack);
 
         AzureStorageAccount account = storageAccountAdapter.getItem(navMenuHeaderSpinner.getSelectedItemPosition());
