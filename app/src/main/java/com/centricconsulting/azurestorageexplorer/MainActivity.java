@@ -25,8 +25,8 @@ import com.centricconsulting.azurestorageexplorer.fragments.BlobListFragment;
 import com.centricconsulting.azurestorageexplorer.fragments.interfaces.IBlobItemNavigateListener;
 import com.centricconsulting.azurestorageexplorer.fragments.interfaces.ISpinnerNavListener;
 import com.centricconsulting.azurestorageexplorer.models.AzureStorageAccount;
+import com.centricconsulting.azurestorageexplorer.models.CloudBlobContainerSerializable;
 import com.centricconsulting.azurestorageexplorer.util.ActivityUtils;
-import com.microsoft.azure.storage.blob.CloudBlobContainer;
 import com.microsoft.azure.storage.blob.ListBlobItem;
 
 import java.util.ArrayList;
@@ -36,7 +36,7 @@ public class MainActivity extends AppCompatActivity
         implements
         NavigationView.OnNavigationItemSelectedListener,
         AddAccountDialogFragment.OnFragmentInteractionListener,
-        IAsyncTaskCallback<ArrayList<CloudBlobContainer>>,
+        IAsyncTaskCallback<ArrayList<CloudBlobContainerSerializable>>,
         BlobListFragment.OnFragmentInteractionListener {
 
     private StorageAccountAdapter storageAccountAdapter;
@@ -100,7 +100,7 @@ public class MainActivity extends AppCompatActivity
             }
         });
 
-        blobContainersAdapter = new BlobContainersAdapter(getApplicationContext(), new ArrayList<CloudBlobContainer>() {
+        blobContainersAdapter = new BlobContainersAdapter(getApplicationContext(), new ArrayList<CloudBlobContainerSerializable>() {
         });
         toolbarSpinner = (Spinner) toolbar.findViewById(R.id.spinner_nav);
         toolbarSpinner.setAdapter(blobContainersAdapter);
@@ -109,13 +109,13 @@ public class MainActivity extends AppCompatActivity
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 Snackbar.make(findViewById(R.id.coordinatorLayout), view.getTag().toString(), Snackbar.LENGTH_LONG).show();
                 final AzureStorageAccount account = storageAccountAdapter.getItem(navMenuHeaderSpinner.getSelectedItemPosition());
-                final CloudBlobContainer container = blobContainersAdapter.getItem(position);
+                final CloudBlobContainerSerializable container = blobContainersAdapter.getItem(position);
                 final Fragment fragment = MainActivity.this.getSupportFragmentManager().findFragmentByTag(BlobListFragment.class.getName());
                 if (fragment != null) {
                     new Thread(new Runnable() {
                         @Override
                         public void run() {
-                            ((ISpinnerNavListener<CloudBlobContainer>) fragment).selectionChanged(account, container);
+                            ((ISpinnerNavListener<CloudBlobContainerSerializable>) fragment).selectionChanged(account, container);
                         }
                     }).start();
                 }
@@ -127,9 +127,7 @@ public class MainActivity extends AppCompatActivity
             }
         });
 
-        Bundle fragmentArgs = new Bundle();
-        fragmentArgs.putSerializable("fragmentListener", this);
-        Fragment containerListFragment = BlobListFragment.instantiate(getApplicationContext(), BlobListFragment.class.getName(), fragmentArgs);
+        Fragment containerListFragment = BlobListFragment.instantiate(getApplicationContext(), BlobListFragment.class.getName());
         ActivityUtils.addFragmentToActivity(getSupportFragmentManager(), containerListFragment, R.id.contentFrame, BlobListFragment.class.getName());
         fragmentStack.push(containerListFragment);
     }
@@ -204,7 +202,7 @@ public class MainActivity extends AppCompatActivity
     }
 
     @Override
-    public void finished(ArrayList<CloudBlobContainer> result) {
+    public void finished(ArrayList<CloudBlobContainerSerializable> result) {
         //received a list of blob containers..load them into the toolbar's spinner
         blobContainersAdapter.replaceDataset(result);
     }

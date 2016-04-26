@@ -22,10 +22,11 @@ import com.centricconsulting.azurestorageexplorer.asynctask.interfaces.IAsyncTas
 import com.centricconsulting.azurestorageexplorer.fragments.interfaces.IBlobItemNavigateListener;
 import com.centricconsulting.azurestorageexplorer.fragments.interfaces.ISpinnerNavListener;
 import com.centricconsulting.azurestorageexplorer.models.AzureStorageAccount;
+import com.centricconsulting.azurestorageexplorer.models.CloudBlobContainerSerializable;
+import com.centricconsulting.azurestorageexplorer.models.CloudBlobDirectorySerializable;
 import com.centricconsulting.azurestorageexplorer.util.Helpers;
 import com.microsoft.azure.storage.StorageException;
 import com.microsoft.azure.storage.blob.CloudBlob;
-import com.microsoft.azure.storage.blob.CloudBlobContainer;
 import com.microsoft.azure.storage.blob.CloudBlobDirectory;
 import com.microsoft.azure.storage.blob.ListBlobItem;
 
@@ -39,12 +40,12 @@ import java.util.ArrayList;
  */
 public class BlobListFragment extends Fragment
         implements
-        ISpinnerNavListener<CloudBlobContainer>,
+        ISpinnerNavListener<CloudBlobContainerSerializable>,
         IBlobItemNavigateListener,
         IAsyncTaskCallback<ArrayList<ListBlobItem>>,
         IRecyclerViewAdapterClickListener<ListBlobItem> {
     private BlobRecyclerViewAdapter recyclerViewAdapter;
-    private CloudBlobDirectory mCurrentBlobDirectory;
+    private CloudBlobDirectorySerializable mCurrentBlobDirectory;
 
     public BlobListFragment() {
 
@@ -69,7 +70,7 @@ public class BlobListFragment extends Fragment
     }
 
     @Override
-    public void selectionChanged(AzureStorageAccount account, CloudBlobContainer container) {
+    public void selectionChanged(AzureStorageAccount account, CloudBlobContainerSerializable container) {
         //get the blobs for this container
         BlobListAsyncTask blobListAsyncTask = new BlobListAsyncTask(this);
         blobListAsyncTask.execute(account.getName(), account.getKey(), container.getName());
@@ -121,7 +122,7 @@ public class BlobListFragment extends Fragment
 
         //only tell the parent listener if it is a folder..handle other clicks within
         if ((item instanceof CloudBlobDirectory)) {
-            ((OnFragmentInteractionListener) fragmentArgs.getSerializable("fragmentListener")).onBlobItemClicked(item);
+            ((OnFragmentInteractionListener) getActivity()).onBlobItemClicked(item);
         } else {
             //download the blob
             final CloudBlob cloudBlob = (CloudBlob) item;
@@ -161,12 +162,12 @@ public class BlobListFragment extends Fragment
 
     @Override
     public void onBlobItemClick(AzureStorageAccount account, ListBlobItem listBlobItem) {
-        mCurrentBlobDirectory = (CloudBlobDirectory) listBlobItem;
-
         try {
+            CloudBlobDirectory cloudBlobDirectory = (CloudBlobDirectory) listBlobItem;
+            mCurrentBlobDirectory = new CloudBlobDirectorySerializable(cloudBlobDirectory.getContainer().getName(), cloudBlobDirectory.getPrefix());
             //get the blobs for this blob directory
             BlobListAsyncTask blobListAsyncTask = new BlobListAsyncTask(this);
-            blobListAsyncTask.execute(account.getName(), account.getKey(), mCurrentBlobDirectory.getContainer().getName(), mCurrentBlobDirectory.getPrefix());
+            blobListAsyncTask.execute(account.getName(), account.getKey(), mCurrentBlobDirectory.getContainerName(), mCurrentBlobDirectory.getPrefix());
         } catch (StorageException e) {
             e.printStackTrace();
         } catch (URISyntaxException e) {

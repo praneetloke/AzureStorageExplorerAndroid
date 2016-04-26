@@ -1,6 +1,7 @@
 package com.centricconsulting.azurestorageexplorer.adapter;
 
 import android.content.Context;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
@@ -23,7 +24,7 @@ public class StorageAccountAdapter extends SpinnerArrayAdapter<AzureStorageAccou
     public View getDropDownView(int position, View convertView, ViewGroup parent) {
         View item = null;
         if (convertView == null) {
-            item = getLayoutInflater().inflate(R.layout.spinner_row, parent, false);
+            item = LayoutInflater.from(getContext()).inflate(R.layout.spinner_row, parent, false);
         } else {
             item = convertView;
         }
