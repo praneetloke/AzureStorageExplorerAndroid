@@ -8,7 +8,6 @@ import android.support.v4.app.Fragment;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -104,14 +103,6 @@ public class BlobListFragment extends Fragment
 
     @Override
     public void onClick(int viewId, ListBlobItem item) {
-        Bundle fragmentArgs = getArguments();
-        if (fragmentArgs == null) {
-            Log.e(this.getClass().getName(), "Fragment wasn't initialized with arguments.");
-        }
-        if (fragmentArgs.getSerializable("fragmentListener") == null) {
-            Log.e(this.getClass().getName(), "Fragment arguments bundle does not contain the fragmentListener key.");
-        }
-
         //if the info icon was clicked, show the info dialog
         if (viewId == R.id.layout2) {
             BlobInfoDialogFragment fragment = new BlobInfoDialogFragment();
