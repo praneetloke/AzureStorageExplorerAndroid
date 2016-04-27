@@ -34,9 +34,8 @@ public class Helpers {
         return ((CloudBlob) blobItem).getProperties().getContentType();
     }
 
-    public static Bundle getBlobInfoFromListBlobItem(ListBlobItem listBlobItem) {
+    public static Bundle getBlobInfoFromListBlobItem(CloudBlob cloudBlob) {
         Bundle args = new Bundle();
-        CloudBlob cloudBlob = (CloudBlob) listBlobItem;
         try {
             args.putString("title", cloudBlob.getName());
         } catch (URISyntaxException e) {

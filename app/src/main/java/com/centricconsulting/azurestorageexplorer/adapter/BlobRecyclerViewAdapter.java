@@ -9,6 +9,7 @@ import android.widget.TextView;
 import com.centricconsulting.azurestorageexplorer.R;
 import com.centricconsulting.azurestorageexplorer.adapter.interfaces.IRecyclerViewAdapterClickListener;
 import com.centricconsulting.azurestorageexplorer.adapter.interfaces.IViewHolderClickListener;
+import com.centricconsulting.azurestorageexplorer.adapter.viewholder.BlobItemViewHolder;
 import com.centricconsulting.azurestorageexplorer.util.Helpers;
 import com.microsoft.azure.storage.blob.CloudBlob;
 import com.microsoft.azure.storage.blob.CloudBlobDirectory;
@@ -20,7 +21,7 @@ import java.util.ArrayList;
 /**
  * Created by Praneet Loke on 4/16/2016.
  */
-public class BlobRecyclerViewAdapter extends LinearRecyclerViewAdapter<ListBlobItem> implements IViewHolderClickListener {
+public class BlobRecyclerViewAdapter extends LinearRecyclerViewAdapter<ListBlobItem, BlobItemViewHolder> implements IViewHolderClickListener {
 
     private IRecyclerViewAdapterClickListener<ListBlobItem> recyclerViewAdapterClickListener;
 
@@ -30,16 +31,16 @@ public class BlobRecyclerViewAdapter extends LinearRecyclerViewAdapter<ListBlobI
     }
 
     @Override
-    public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+    public BlobItemViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         // create a new view
         View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.blob_item_layout, parent, false);
         //TODO: set the view's size, margins, paddings and layout parameters
-        ViewHolder vh = new ViewHolder(v, this);
+        BlobItemViewHolder vh = new BlobItemViewHolder(v, this);
         return vh;
     }
 
     @Override
-    public void onBindViewHolder(ViewHolder holder, int position) {
+    public void onBindViewHolder(BlobItemViewHolder holder, int position) {
         ListBlobItem blobItem = getDataset().get(position);
         try {
             boolean isFolder = !(blobItem instanceof CloudBlob);
@@ -54,9 +55,9 @@ public class BlobRecyclerViewAdapter extends LinearRecyclerViewAdapter<ListBlobI
     }
 
     @Override
-    public void onClick(int viewId, int adapterPosition) {
+    public void onClick(View view, int adapterPosition) {
         if (adapterPosition != RecyclerView.NO_POSITION) {
-            recyclerViewAdapterClickListener.onClick(viewId, this.getDataset().get(adapterPosition));
+            recyclerViewAdapterClickListener.onClick(view, adapterPosition, this.getDataset().get(adapterPosition));
         }
     }
 }
