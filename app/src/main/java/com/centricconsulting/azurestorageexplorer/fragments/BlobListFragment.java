@@ -229,7 +229,7 @@ public class BlobListFragment extends Fragment
                 break;
             case R.drawable.ic_delete_forever:
                 DeleteBlobDialogFragment deleteBlobDialogFragment = new DeleteBlobDialogFragment();
-                deleteBlobDialogFragment.setTargetFragment(this, R.id.blob_delete);
+                deleteBlobDialogFragment.setTargetFragment(this, 1);
                 deleteBlobDialogFragment.show(getActivity().getSupportFragmentManager(), "DeleteBlobDialogFragment");
                 break;
             case R.drawable.ic_download:
