@@ -17,7 +17,12 @@ import java.util.ArrayList;
 public class BlobContainersAdapter extends SpinnerArrayAdapter<CloudBlobContainerSerializable> {
 
     public BlobContainersAdapter(Context context, ArrayList<CloudBlobContainerSerializable> blobContainers) {
-        super(context, blobContainers);
+        super(context, android.R.layout.simple_spinner_item, blobContainers);
+    }
+
+    @Override
+    public View getView(int position, View convertView, ViewGroup parent) {
+        return getDropDownView(position, convertView, parent);
     }
 
     @Override

@@ -8,15 +8,17 @@ import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.PopupMenu;
+import android.support.v7.widget.ListPopupWindow;
 import android.support.v7.widget.RecyclerView;
+import android.view.Gravity;
 import android.view.LayoutInflater;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.Toast;
 
 import com.centricconsulting.azurestorageexplorer.R;
+import com.centricconsulting.azurestorageexplorer.adapter.BlobActionsPopupWindowArrayAdapter;
 import com.centricconsulting.azurestorageexplorer.adapter.BlobRecyclerViewAdapter;
 import com.centricconsulting.azurestorageexplorer.adapter.interfaces.IRecyclerViewAdapterClickListener;
 import com.centricconsulting.azurestorageexplorer.asynctask.BlobListAsyncTask;
@@ -47,15 +49,28 @@ public class BlobListFragment extends Fragment
         IBlobItemNavigateListener,
         IAsyncTaskCallback<ArrayList<ListBlobItem>>,
         IRecyclerViewAdapterClickListener<ListBlobItem>,
-        PopupMenu.OnMenuItemClickListener,
+        AdapterView.OnItemClickListener,
         IDialogFragmentClickListener {
-    private static final long ANIMATION_DURATION = 500;
+
+    private static final ArrayList<String> BLOB_ACTIONS = new ArrayList<>();
+    private static final ArrayList<Integer> BLOB_ACTIONS_ICONS = new ArrayList<>();
     private BlobRecyclerViewAdapter recyclerViewAdapter;
     private CloudBlobDirectorySerializable mCurrentBlobDirectory;
     private int mCurrentlySelectedBlobItemAdapterPosition;
+    private ListPopupWindow mListPopupWindow;
 
     public BlobListFragment() {
+        if (BLOB_ACTIONS.size() == 0) {
+            BLOB_ACTIONS.add("Open");
+            BLOB_ACTIONS.add("Properties");
+            BLOB_ACTIONS.add("Download");
+            BLOB_ACTIONS.add("Delete forever");
 
+            BLOB_ACTIONS_ICONS.add(R.drawable.ic_view);
+            BLOB_ACTIONS_ICONS.add(R.drawable.ic_info_outline);
+            BLOB_ACTIONS_ICONS.add(R.drawable.ic_download);
+            BLOB_ACTIONS_ICONS.add(R.drawable.ic_delete_forever);
+        }
     }
 
     public static BlobListFragment newInstance() {
@@ -125,10 +140,17 @@ public class BlobListFragment extends Fragment
     }
 
     private void showPopup(View view) {
-        PopupMenu popup = new PopupMenu(getContext(), view);
-        popup.setOnMenuItemClickListener(this);
-        popup.inflate(R.menu.blob_actions);
-        popup.show();
+        if (mListPopupWindow == null) {
+            mListPopupWindow = new ListPopupWindow(getContext());
+            mListPopupWindow.setModal(false);
+            mListPopupWindow.setOnItemClickListener(this);
+            mListPopupWindow.setWidth(350);
+            mListPopupWindow.setAdapter(new BlobActionsPopupWindowArrayAdapter(getContext(), android.R.layout.simple_list_item_1, BLOB_ACTIONS, BLOB_ACTIONS_ICONS));
+            mListPopupWindow.setDropDownGravity(Gravity.START);
+        }
+
+        mListPopupWindow.setAnchorView(view);
+        mListPopupWindow.show();
     }
 
     @Override
@@ -143,61 +165,6 @@ public class BlobListFragment extends Fragment
             e.printStackTrace();
         } catch (URISyntaxException e) {
             e.printStackTrace();
-        }
-    }
-
-    @Override
-    public boolean onMenuItemClick(MenuItem item) {
-        final CloudBlob cloudBlob = (CloudBlob) recyclerViewAdapter.getDataset().get(mCurrentlySelectedBlobItemAdapterPosition);
-
-        switch (item.getItemId()) {
-            case R.id.blob_properties:
-                BlobInfoDialogFragment fragment = new BlobInfoDialogFragment();
-                fragment.setArguments(Helpers.getBlobInfoFromListBlobItem(cloudBlob));
-                fragment.show(getActivity().getSupportFragmentManager(), "BlobInfoDialogFragment");
-                return true;
-            case R.id.blob_delete:
-                DeleteBlobDialogFragment deleteBlobDialogFragment = new DeleteBlobDialogFragment();
-                deleteBlobDialogFragment.setTargetFragment(this, R.id.blob_delete);
-                deleteBlobDialogFragment.show(getActivity().getSupportFragmentManager(), "DeleteBlobDialogFragment");
-                return true;
-            case R.id.blob_download:
-                //download the blob
-                final Context context = getContext();
-                new Thread(new Runnable() {
-                    @Override
-                    public void run() {
-                        try {
-                            final String path = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).getPath();
-                            File file = new File(path);
-                            if (!file.exists()) {
-                                file.mkdirs();
-                            }
-                            String fileName = cloudBlob.getName().replace("/", "_");
-                            File imageFile = new File(file.getAbsolutePath(), fileName);
-                            if (!imageFile.exists()) {
-                                imageFile.createNewFile();
-                            }
-                            cloudBlob.downloadToFile(imageFile.getAbsolutePath());
-
-                            DownloadManager downloadManager = (DownloadManager) context.getSystemService(Context.DOWNLOAD_SERVICE);
-                            downloadManager.addCompletedDownload(
-                                    fileName,
-                                    cloudBlob.getName(),
-                                    true,
-                                    cloudBlob.getProperties().getContentType(),
-                                    imageFile.getAbsolutePath(),
-                                    imageFile.length(),
-                                    true);
-                        } catch (Exception e) {
-                            showToast(e.getMessage());
-                        }
-                    }
-                }).start();
-                return true;
-            case R.id.blob_view:
-            default:
-                return false;
         }
     }
 
@@ -247,6 +214,62 @@ public class BlobListFragment extends Fragment
     @Override
     public void onNegativeClick() {
 
+    }
+
+    @Override
+    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+        mListPopupWindow.dismiss();
+        final CloudBlob cloudBlob = (CloudBlob) recyclerViewAdapter.getDataset().get(mCurrentlySelectedBlobItemAdapterPosition);
+
+        switch ((int) view.getTag()) {
+            case R.drawable.ic_info_outline:
+                BlobInfoDialogFragment fragment = new BlobInfoDialogFragment();
+                fragment.setArguments(Helpers.getBlobInfoFromListBlobItem(cloudBlob));
+                fragment.show(getActivity().getSupportFragmentManager(), "BlobInfoDialogFragment");
+                break;
+            case R.drawable.ic_delete_forever:
+                DeleteBlobDialogFragment deleteBlobDialogFragment = new DeleteBlobDialogFragment();
+                deleteBlobDialogFragment.setTargetFragment(this, R.id.blob_delete);
+                deleteBlobDialogFragment.show(getActivity().getSupportFragmentManager(), "DeleteBlobDialogFragment");
+                break;
+            case R.drawable.ic_download:
+                //download the blob
+                final Context context = getContext();
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            final String path = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).getPath();
+                            File file = new File(path);
+                            if (!file.exists()) {
+                                file.mkdirs();
+                            }
+                            String fileName = cloudBlob.getName().replace("/", "_");
+                            File imageFile = new File(file.getAbsolutePath(), fileName);
+                            if (!imageFile.exists()) {
+                                imageFile.createNewFile();
+                            }
+                            cloudBlob.downloadToFile(imageFile.getAbsolutePath());
+
+                            DownloadManager downloadManager = (DownloadManager) context.getSystemService(Context.DOWNLOAD_SERVICE);
+                            downloadManager.addCompletedDownload(
+                                    fileName,
+                                    cloudBlob.getName(),
+                                    true,
+                                    cloudBlob.getProperties().getContentType(),
+                                    imageFile.getAbsolutePath(),
+                                    imageFile.length(),
+                                    true);
+                        } catch (Exception e) {
+                            showToast(e.getMessage());
+                        }
+                    }
+                }).start();
+                break;
+            case R.drawable.ic_view:
+            default:
+                break;
+        }
     }
 
     /**

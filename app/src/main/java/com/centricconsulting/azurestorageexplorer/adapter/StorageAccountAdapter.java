@@ -17,7 +17,12 @@ import java.util.ArrayList;
 public class StorageAccountAdapter extends SpinnerArrayAdapter<AzureStorageAccount> {
 
     public StorageAccountAdapter(Context context, ArrayList<AzureStorageAccount> accounts) {
-        super(context, accounts);
+        super(context, android.R.layout.simple_spinner_item, accounts);
+    }
+
+    @Override
+    public View getView(int position, View convertView, ViewGroup parent) {
+        return getDropDownView(position, convertView, parent);
     }
 
     @Override
