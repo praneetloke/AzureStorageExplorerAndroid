@@ -228,7 +228,11 @@ public class BlobListFragment extends Fragment
                 fragment.show(getActivity().getSupportFragmentManager(), "BlobInfoDialogFragment");
                 break;
             case R.drawable.ic_delete_forever:
-                DeleteBlobDialogFragment deleteBlobDialogFragment = new DeleteBlobDialogFragment();
+                Bundle args = new Bundle();
+                args.putString("title", getString(R.string.delete_blob_title));
+                args.putString("message", getString(R.string.delete_blob_confirmation_message));
+                DeleteConfirmationDialogFragment deleteBlobDialogFragment = new DeleteConfirmationDialogFragment();
+                deleteBlobDialogFragment.setArguments(args);
                 deleteBlobDialogFragment.setTargetFragment(this, 1);
                 deleteBlobDialogFragment.show(getActivity().getSupportFragmentManager(), "DeleteBlobDialogFragment");
                 break;

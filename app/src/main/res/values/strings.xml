@@ -7,15 +7,18 @@
     <string name="action_settings">Settings</string>
 
     <!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="cancel">Cancel</string>
     <string name="add">Add</string>
     <string name="invalid_name">Invalid name</string>
     <string name="close">Close</string>
     <string name="delete_confirmation">Deleted</string>
     <string name="blob_delete_failed">Failed to delete the blob item.</string>
-    <string name="delete_blob_title">Delete blob item</string>
+    <string name="delete_blob_title">Delete blob</string>
     <string name="delete_blob_confirmation_message">Are you really sure you want to delete this blob?</string>
     <string name="yes">Yes</string>
     <string name="no">No</string>
+    <string name="delete_storage_account_title">Remove storage account</string>
+    <string name="delete_storage_account_confirmation_message">Are you sure you want to remove the currently selected storage account from this device?</string>
+    <string name="remove_account">Remove account</string>
+    <string name="blobs">Blobs</string>
 </resources>

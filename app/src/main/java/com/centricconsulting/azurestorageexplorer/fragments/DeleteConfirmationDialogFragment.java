@@ -12,28 +12,37 @@ import com.centricconsulting.azurestorageexplorer.fragments.interfaces.IDialogFr
 /**
  * Created by Praneet Loke on 4/26/2016.
  */
-public class DeleteBlobDialogFragment extends DialogFragment {
-    public DeleteBlobDialogFragment() {
+public class DeleteConfirmationDialogFragment extends DialogFragment {
+    public DeleteConfirmationDialogFragment() {
 
     }
 
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
+        Bundle args = getArguments();
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
         builder
-                .setTitle(getContext().getString(R.string.delete_blob_title))
-                .setMessage(getContext().getString(R.string.delete_blob_confirmation_message))
+                .setTitle(args.getString("title"))
+                .setMessage(args.getString("message"))
                 .setPositiveButton(getContext().getString(R.string.yes), new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        ((IDialogFragmentClickListener) getTargetFragment()).onPositiveClick();
+                        if (getTargetFragment() != null) {
+                            ((IDialogFragmentClickListener) getTargetFragment()).onPositiveClick();
+                        } else {
+                            ((IDialogFragmentClickListener) getActivity()).onPositiveClick();
+                        }
                     }
                 })
                 .setNegativeButton(getContext().getString(R.string.no), new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         dialog.dismiss();
-                        ((IDialogFragmentClickListener) getTargetFragment()).onNegativeClick();
+                        if (getTargetFragment() != null) {
+                            ((IDialogFragmentClickListener) getTargetFragment()).onNegativeClick();
+                        } else {
+                            ((IDialogFragmentClickListener) getActivity()).onNegativeClick();
+                        }
                     }
                 });
 

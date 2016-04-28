@@ -22,7 +22,9 @@ import com.centricconsulting.azurestorageexplorer.asynctask.BlobContainerListAsy
 import com.centricconsulting.azurestorageexplorer.asynctask.interfaces.IAsyncTaskCallback;
 import com.centricconsulting.azurestorageexplorer.fragments.AddAccountDialogFragment;
 import com.centricconsulting.azurestorageexplorer.fragments.BlobListFragment;
+import com.centricconsulting.azurestorageexplorer.fragments.DeleteConfirmationDialogFragment;
 import com.centricconsulting.azurestorageexplorer.fragments.interfaces.IBlobItemNavigateListener;
+import com.centricconsulting.azurestorageexplorer.fragments.interfaces.IDialogFragmentClickListener;
 import com.centricconsulting.azurestorageexplorer.fragments.interfaces.ISpinnerNavListener;
 import com.centricconsulting.azurestorageexplorer.models.AzureStorageAccount;
 import com.centricconsulting.azurestorageexplorer.models.CloudBlobContainerSerializable;
@@ -37,7 +39,8 @@ public class MainActivity extends AppCompatActivity
         NavigationView.OnNavigationItemSelectedListener,
         AddAccountDialogFragment.OnFragmentInteractionListener,
         IAsyncTaskCallback<ArrayList<CloudBlobContainerSerializable>>,
-        BlobListFragment.OnFragmentInteractionListener {
+        BlobListFragment.OnFragmentInteractionListener,
+        IDialogFragmentClickListener {
 
     private StorageAccountAdapter storageAccountAdapter;
     private BlobContainersAdapter blobContainersAdapter;
@@ -176,12 +179,6 @@ public class MainActivity extends AppCompatActivity
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
 
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.nav_manage) {
-            //TODO: delete the currently selected account
-            return true;
-        }
-
         return super.onOptionsItemSelected(item);
     }
 
@@ -192,6 +189,17 @@ public class MainActivity extends AppCompatActivity
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
+
+        if (id == R.id.removeAccount) {
+            //delete the currently selected account
+            Bundle args = new Bundle();
+            args.putString("title", getString(R.string.delete_storage_account_title));
+            args.putString("message", getString(R.string.delete_storage_account_confirmation_message));
+            DeleteConfirmationDialogFragment deleteBlobDialogFragment = new DeleteConfirmationDialogFragment();
+            deleteBlobDialogFragment.setArguments(args);
+            deleteBlobDialogFragment.show(getSupportFragmentManager(), "DeleteBlobDialogFragment");
+        }
+
         return true;
     }
 
@@ -221,5 +229,18 @@ public class MainActivity extends AppCompatActivity
 
         AzureStorageAccount account = storageAccountAdapter.getItem(navMenuHeaderSpinner.getSelectedItemPosition());
         ((IBlobItemNavigateListener) blobListFragment).onBlobItemClick(account, blobItem);
+    }
+
+    @Override
+    public void onPositiveClick() {
+        //first remove all blob list fragments
+        if (fragmentStack.size() > 1) {
+
+        }
+    }
+
+    @Override
+    public void onNegativeClick() {
+
     }
 }

@@ -6,13 +6,13 @@
             android:id="@+id/blobs"
             android:checked="true"
             android:icon="@drawable/ic_blobs"
-            android:title="Blobs" />
+            android:title="@string/blobs" />
 
         <item
-            android:id="@+id/nav_manage"
+            android:id="@+id/removeAccount"
             android:checkable="false"
-            android:icon="@drawable/ic_menu_manage"
-            android:title="Delete account" />
+            android:icon="@drawable/ic_delete"
+            android:title="@string/remove_account" />
     </group>
 
 </menu>
