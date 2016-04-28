@@ -1,8 +1,6 @@
 package com.centricconsulting.azurestorageexplorer.adapter;
 
 import android.content.Context;
-import android.view.View;
-import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 
 import java.io.Serializable;
@@ -14,14 +12,9 @@ import java.util.ArrayList;
 public class SpinnerArrayAdapter<T> extends ArrayAdapter<T> implements Serializable {
     private ArrayList<T> dataset;
 
-    public SpinnerArrayAdapter(Context context, ArrayList<T> dataset) {
-        super(context, android.R.layout.simple_spinner_item, dataset);
+    public SpinnerArrayAdapter(Context context, int layoutResId, ArrayList<T> dataset) {
+        super(context, layoutResId, dataset);
         this.dataset = dataset;
-    }
-
-    @Override
-    public View getView(int position, View convertView, ViewGroup parent) {
-        return getDropDownView(position, convertView, parent);
     }
 
     protected ArrayList<T> getDataset() {
