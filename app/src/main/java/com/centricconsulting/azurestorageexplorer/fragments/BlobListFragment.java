@@ -2,6 +2,8 @@ package com.centricconsulting.azurestorageexplorer.fragments;
 
 import android.app.DownloadManager;
 import android.content.Context;
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.support.design.widget.Snackbar;
@@ -249,11 +251,11 @@ public class BlobListFragment extends Fragment
                                 file.mkdirs();
                             }
                             String fileName = cloudBlob.getName().replace("/", "_");
-                            File imageFile = new File(file.getAbsolutePath(), fileName);
-                            if (!imageFile.exists()) {
-                                imageFile.createNewFile();
+                            File blobFile = new File(file.getAbsolutePath(), fileName);
+                            if (!blobFile.exists()) {
+                                blobFile.createNewFile();
                             }
-                            cloudBlob.downloadToFile(imageFile.getAbsolutePath());
+                            cloudBlob.downloadToFile(blobFile.getAbsolutePath());
 
                             DownloadManager downloadManager = (DownloadManager) context.getSystemService(Context.DOWNLOAD_SERVICE);
                             downloadManager.addCompletedDownload(
@@ -261,8 +263,8 @@ public class BlobListFragment extends Fragment
                                     cloudBlob.getName(),
                                     true,
                                     cloudBlob.getProperties().getContentType(),
-                                    imageFile.getAbsolutePath(),
-                                    imageFile.length(),
+                                    blobFile.getAbsolutePath(),
+                                    blobFile.length(),
                                     true);
                         } catch (Exception e) {
                             showToast(e.getMessage());
@@ -271,6 +273,38 @@ public class BlobListFragment extends Fragment
                 }).start();
                 break;
             case R.drawable.ic_view:
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            final String path = getContext().getExternalCacheDir().getAbsolutePath();
+                            File file = new File(path);
+                            if (!file.exists()) {
+                                file.mkdirs();
+                            }
+                            String fileName = cloudBlob.getName().replace("/", "_");
+                            File blobFile = new File(file.getAbsolutePath(), fileName);
+                            if (!blobFile.exists()) {
+                                blobFile.createNewFile();
+                            }
+                            cloudBlob.downloadToFile(blobFile.getAbsolutePath());
+
+                            String extension = android.webkit.MimeTypeMap.getFileExtensionFromUrl(Uri.fromFile(blobFile).toString());
+                            String mimeType = android.webkit.MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension);
+
+                            if (mimeType == null || mimeType.isEmpty() || mimeType.equals("text/css")) {
+                                mimeType = "text/plain";
+                            }
+
+                            Intent myIntent = new Intent(android.content.Intent.ACTION_VIEW);
+                            myIntent.setDataAndType(Uri.fromFile(blobFile), mimeType);
+                            startActivity(myIntent);
+                        } catch (Exception e) {
+                            showToast(e.getMessage());
+                        }
+                    }
+                }).start();
+                break;
             default:
                 break;
         }
