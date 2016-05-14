@@ -9,7 +9,7 @@ Pre-alpha
 - ~~Use the current spinner nav in the toolbar to show list of containers instead~~
 - ~~Change the first level of recycler view to show the blobs in the selected container~~
 - Upload blobs
-- View blobs
+- ~~View blobs~~
 - Edit blob metadata like Cache-Control, Content-Type etc.
 
 # Future roadmap
