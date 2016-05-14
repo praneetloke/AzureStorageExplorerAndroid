@@ -12,14 +12,14 @@ import com.centricconsulting.azurestorageexplorer.fragments.interfaces.IDialogFr
 /**
  * Created by Praneet Loke on 4/26/2016.
  */
-public class DeleteConfirmationDialogFragment extends DialogFragment {
-    public DeleteConfirmationDialogFragment() {
+public class ConfirmationDialogFragment extends DialogFragment {
+    public ConfirmationDialogFragment() {
 
     }
 
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
-        Bundle args = getArguments();
+        final Bundle args = getArguments();
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
         builder
                 .setTitle(args.getString("title"))
@@ -28,9 +28,9 @@ public class DeleteConfirmationDialogFragment extends DialogFragment {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         if (getTargetFragment() != null) {
-                            ((IDialogFragmentClickListener) getTargetFragment()).onPositiveClick();
+                            ((IDialogFragmentClickListener) getTargetFragment()).onPositiveClick(getTargetRequestCode());
                         } else {
-                            ((IDialogFragmentClickListener) getActivity()).onPositiveClick();
+                            ((IDialogFragmentClickListener) getActivity()).onPositiveClick(args.getInt("requestCode", 0));
                         }
                     }
                 })
@@ -39,9 +39,9 @@ public class DeleteConfirmationDialogFragment extends DialogFragment {
                     public void onClick(DialogInterface dialog, int which) {
                         dialog.dismiss();
                         if (getTargetFragment() != null) {
-                            ((IDialogFragmentClickListener) getTargetFragment()).onNegativeClick();
+                            ((IDialogFragmentClickListener) getTargetFragment()).onNegativeClick(getTargetRequestCode());
                         } else {
-                            ((IDialogFragmentClickListener) getActivity()).onNegativeClick();
+                            ((IDialogFragmentClickListener) getActivity()).onNegativeClick(args.getInt("requestCode", 0));
                         }
                     }
                 });

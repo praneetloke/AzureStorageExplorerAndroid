@@ -56,6 +56,7 @@ public class BlobListFragment extends Fragment
 
     private static final ArrayList<String> BLOB_ACTIONS = new ArrayList<>();
     private static final ArrayList<Integer> BLOB_ACTIONS_ICONS = new ArrayList<>();
+    private static final int DELETE_REQUEST_CODE = 1;
     private BlobRecyclerViewAdapter recyclerViewAdapter;
     private CloudBlobDirectorySerializable mCurrentBlobDirectory;
     private int mCurrentlySelectedBlobItemAdapterPosition;
@@ -189,7 +190,13 @@ public class BlobListFragment extends Fragment
     }
 
     @Override
-    public void onPositiveClick() {
+    public void onPositiveClick(int requestCode) {
+        if (requestCode == DELETE_REQUEST_CODE) {
+            deletionConfirmed();
+        }
+    }
+
+    private void deletionConfirmed() {
         final CloudBlob cloudBlob = (CloudBlob) recyclerViewAdapter.getDataset().get(mCurrentlySelectedBlobItemAdapterPosition);
         new Thread(new Runnable() {
             @Override
@@ -214,7 +221,7 @@ public class BlobListFragment extends Fragment
     }
 
     @Override
-    public void onNegativeClick() {
+    public void onNegativeClick(int requestCode) {
 
     }
 
@@ -227,16 +234,16 @@ public class BlobListFragment extends Fragment
             case R.drawable.ic_info_outline:
                 BlobInfoDialogFragment fragment = new BlobInfoDialogFragment();
                 fragment.setArguments(Helpers.getBlobInfoFromListBlobItem(cloudBlob));
-                fragment.show(getActivity().getSupportFragmentManager(), "BlobInfoDialogFragment");
+                fragment.show(getActivity().getSupportFragmentManager(), BlobInfoDialogFragment.class.getName());
                 break;
             case R.drawable.ic_delete_forever:
                 Bundle args = new Bundle();
                 args.putString("title", getString(R.string.delete_blob_title));
                 args.putString("message", getString(R.string.delete_blob_confirmation_message));
-                DeleteConfirmationDialogFragment deleteBlobDialogFragment = new DeleteConfirmationDialogFragment();
-                deleteBlobDialogFragment.setArguments(args);
-                deleteBlobDialogFragment.setTargetFragment(this, 1);
-                deleteBlobDialogFragment.show(getActivity().getSupportFragmentManager(), "DeleteBlobDialogFragment");
+                ConfirmationDialogFragment deleteConfirmation = new ConfirmationDialogFragment();
+                deleteConfirmation.setArguments(args);
+                deleteConfirmation.setTargetFragment(this, DELETE_REQUEST_CODE);
+                deleteConfirmation.show(getActivity().getSupportFragmentManager(), ConfirmationDialogFragment.class.getName());
                 break;
             case R.drawable.ic_download:
                 //download the blob

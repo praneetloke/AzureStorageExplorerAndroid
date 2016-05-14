@@ -4,7 +4,7 @@ package com.centricconsulting.azurestorageexplorer.fragments.interfaces;
  * Created by Praneet Loke on 4/26/2016.
  */
 public interface IDialogFragmentClickListener {
-    void onPositiveClick();
+    void onPositiveClick(int requestCode);
 
-    void onNegativeClick();
+    void onNegativeClick(int requestCode);
 }

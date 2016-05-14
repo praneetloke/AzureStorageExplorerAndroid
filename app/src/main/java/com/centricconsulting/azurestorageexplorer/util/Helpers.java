@@ -45,8 +45,23 @@ public class Helpers {
         args.putString("contentType", cloudBlob.getProperties().getContentType());
         args.putString("cacheControl", cloudBlob.getProperties().getCacheControl());
         args.putString("blobType", cloudBlob.getProperties().getBlobType().name());
-        args.putString("length", Long.toString(cloudBlob.getProperties().getLength()));
+        args.putString("length", getHumanReadableLength(cloudBlob.getProperties().getLength()));
 
         return args;
+    }
+
+    public static String getHumanReadableLength(long bytes) {
+        String result = null;
+        if (bytes > 1024 && bytes / 1024 < 1024) {
+            result = String.format("%,.2f KB", (double) bytes / 1024);
+        } else if (bytes / 1024 >= 1024 && bytes / 1048576 < 1024) {
+            result = String.format("%,.2f MB", (double) bytes / 1048576);
+        } else if (bytes / 1048576 >= 1024) {
+            result = "More than 1GB";
+        } else {
+            result = String.format("%d bytes", bytes);
+        }
+
+        return result;
     }
 }

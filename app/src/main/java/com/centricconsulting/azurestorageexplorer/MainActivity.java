@@ -22,7 +22,7 @@ import com.centricconsulting.azurestorageexplorer.asynctask.BlobContainerListAsy
 import com.centricconsulting.azurestorageexplorer.asynctask.interfaces.IAsyncTaskCallback;
 import com.centricconsulting.azurestorageexplorer.fragments.AddAccountDialogFragment;
 import com.centricconsulting.azurestorageexplorer.fragments.BlobListFragment;
-import com.centricconsulting.azurestorageexplorer.fragments.DeleteConfirmationDialogFragment;
+import com.centricconsulting.azurestorageexplorer.fragments.ConfirmationDialogFragment;
 import com.centricconsulting.azurestorageexplorer.fragments.interfaces.IBlobItemNavigateListener;
 import com.centricconsulting.azurestorageexplorer.fragments.interfaces.IDialogFragmentClickListener;
 import com.centricconsulting.azurestorageexplorer.fragments.interfaces.ISpinnerNavListener;
@@ -42,6 +42,7 @@ public class MainActivity extends AppCompatActivity
         BlobListFragment.OnFragmentInteractionListener,
         IDialogFragmentClickListener {
 
+    private static final int REMOVE_STORAGE_ACCOUNT_REQUEST_CODE = 1;
     private StorageAccountAdapter storageAccountAdapter;
     private BlobContainersAdapter blobContainersAdapter;
     private Spinner navMenuHeaderSpinner;
@@ -195,9 +196,10 @@ public class MainActivity extends AppCompatActivity
             Bundle args = new Bundle();
             args.putString("title", getString(R.string.delete_storage_account_title));
             args.putString("message", getString(R.string.delete_storage_account_confirmation_message));
-            DeleteConfirmationDialogFragment deleteBlobDialogFragment = new DeleteConfirmationDialogFragment();
-            deleteBlobDialogFragment.setArguments(args);
-            deleteBlobDialogFragment.show(getSupportFragmentManager(), "DeleteBlobDialogFragment");
+            args.putInt("requestCode", REMOVE_STORAGE_ACCOUNT_REQUEST_CODE);
+            ConfirmationDialogFragment removeStorageAccount = new ConfirmationDialogFragment();
+            removeStorageAccount.setArguments(args);
+            removeStorageAccount.show(getSupportFragmentManager(), ConfirmationDialogFragment.class.getName());
         }
 
         return true;
@@ -232,15 +234,17 @@ public class MainActivity extends AppCompatActivity
     }
 
     @Override
-    public void onPositiveClick() {
-        //first remove all blob list fragments
-        if (fragmentStack.size() > 1) {
+    public void onPositiveClick(int requestCode) {
+        if (requestCode == REMOVE_STORAGE_ACCOUNT_REQUEST_CODE) {
+            //first remove all blob list fragments
+            if (fragmentStack.size() > 1) {
 
+            }
         }
     }
 
     @Override
-    public void onNegativeClick() {
+    public void onNegativeClick(int requestCode) {
 
     }
 }
