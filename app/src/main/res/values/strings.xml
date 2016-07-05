@@ -18,7 +18,7 @@
     <string name="yes">Yes</string>
     <string name="no">No</string>
     <string name="delete_storage_account_title">Remove storage account</string>
-    <string name="delete_storage_account_confirmation_message">Are you sure you want to remove the current storage account from this device?</string>
+    <string name="delete_storage_account_confirmation_message">Are you sure you want to remove the current storage account &lt;b&gt;from this device&lt;/b&gt;?</string>
     <string name="remove_account">Remove account</string>
     <string name="blobs">Blobs</string>
 </resources>

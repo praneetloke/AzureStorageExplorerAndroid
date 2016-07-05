@@ -5,6 +5,7 @@ import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
 import android.support.v7.app.AlertDialog;
+import android.text.Html;
 
 import com.centricconsulting.azurestorageexplorer.R;
 import com.centricconsulting.azurestorageexplorer.fragments.interfaces.IDialogFragmentClickListener;
@@ -23,7 +24,7 @@ public class ConfirmationDialogFragment extends DialogFragment {
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
         builder
                 .setTitle(args.getString("title"))
-                .setMessage(args.getString("message"))
+                .setMessage(Html.fromHtml(args.getString("message")))
                 .setPositiveButton(getContext().getString(R.string.yes), new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {

@@ -305,6 +305,8 @@ public class MainActivity extends AppCompatActivity
         navMenuHeaderSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                //reset the fragment stack in case the user navigated into blob containers
+                resetBlobListFragmentStack();
                 final AzureStorageAccount account = storageAccountAdapter.getItem(position);
                 if (account.getKey() == null) {
                     //fetch the key for this account first
@@ -343,6 +345,23 @@ public class MainActivity extends AppCompatActivity
 
             }
         });
+    }
+
+    private void resetBlobListFragmentStack() {
+        if (fragmentStack == null) {
+            return;
+        }
+
+        //remove the blob list fragments that are already there
+        while (fragmentStack.size() >= 2) {
+            //if we are about to pop the final child fragment, then hide the title again
+            if (fragmentStack.size() == 2) {
+                getSupportActionBar().setDisplayShowTitleEnabled(false);
+                toolbarSpinner.setVisibility(View.VISIBLE);
+            }
+
+            ActivityUtils.popPreviousFragmentFromStack(getSupportFragmentManager(), fragmentStack);
+        }
     }
 
     @Override
