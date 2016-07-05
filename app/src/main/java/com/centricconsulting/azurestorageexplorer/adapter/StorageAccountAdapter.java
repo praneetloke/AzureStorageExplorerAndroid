@@ -7,7 +7,7 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import com.centricconsulting.azurestorageexplorer.R;
-import com.centricconsulting.azurestorageexplorer.models.AzureStorageAccount;
+import com.centricconsulting.azurestorageexplorer.storage.models.AzureStorageAccount;
 
 import java.util.ArrayList;
 

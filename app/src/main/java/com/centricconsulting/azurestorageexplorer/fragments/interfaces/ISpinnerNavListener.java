@@ -1,6 +1,6 @@
 package com.centricconsulting.azurestorageexplorer.fragments.interfaces;
 
-import com.centricconsulting.azurestorageexplorer.models.AzureStorageAccount;
+import com.centricconsulting.azurestorageexplorer.storage.models.AzureStorageAccount;
 
 /**
  * Created by Praneet Loke on 4/16/2016.

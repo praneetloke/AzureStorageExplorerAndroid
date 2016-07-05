@@ -14,8 +14,8 @@ import android.widget.EditText;
 
 import com.centricconsulting.azurestorageexplorer.AzureStorageExplorerApplication;
 import com.centricconsulting.azurestorageexplorer.R;
-import com.centricconsulting.azurestorageexplorer.models.AzureStorageAccount;
 import com.centricconsulting.azurestorageexplorer.storage.AzureStorageAccountSQLiteHelper;
+import com.centricconsulting.azurestorageexplorer.storage.models.AzureStorageAccount;
 
 import java.util.regex.Pattern;
 
@@ -65,7 +65,7 @@ public class AddAccountDialogFragment extends DialogFragment {
                                 .getWritableDatabase()
                                 .insert(AzureStorageAccountSQLiteHelper.TABLE_NAME, null, contentValues);
 
-                        onAccountSaved(new AzureStorageAccount(insertedId, name, storageKey.getText().toString()));
+                        onAccountSaved(new AzureStorageAccount(insertedId, name, storageKey.getText().toString(), ""));
                         dialog.dismiss();
                     }
                 })

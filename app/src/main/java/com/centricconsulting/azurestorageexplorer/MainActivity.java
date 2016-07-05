@@ -10,11 +10,14 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
+import android.util.Xml;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.Spinner;
+import android.widget.Toast;
 
 import com.centricconsulting.azurestorageexplorer.adapter.BlobContainersAdapter;
 import com.centricconsulting.azurestorageexplorer.adapter.StorageAccountAdapter;
@@ -26,13 +29,37 @@ import com.centricconsulting.azurestorageexplorer.fragments.ConfirmationDialogFr
 import com.centricconsulting.azurestorageexplorer.fragments.interfaces.IBlobItemNavigateListener;
 import com.centricconsulting.azurestorageexplorer.fragments.interfaces.IDialogFragmentClickListener;
 import com.centricconsulting.azurestorageexplorer.fragments.interfaces.ISpinnerNavListener;
-import com.centricconsulting.azurestorageexplorer.models.AzureStorageAccount;
 import com.centricconsulting.azurestorageexplorer.models.CloudBlobContainerSerializable;
+import com.centricconsulting.azurestorageexplorer.models.StorageService;
+import com.centricconsulting.azurestorageexplorer.models.Subscription;
+import com.centricconsulting.azurestorageexplorer.parser.XmlToPojo;
+import com.centricconsulting.azurestorageexplorer.restclient.StorageKeyRestClient;
+import com.centricconsulting.azurestorageexplorer.runnable.AzureSubscriptionSQLiteRunnable;
+import com.centricconsulting.azurestorageexplorer.storage.models.AzureStorageAccount;
+import com.centricconsulting.azurestorageexplorer.storage.models.AzureSubscription;
 import com.centricconsulting.azurestorageexplorer.util.ActivityUtils;
+import com.centricconsulting.azurestorageexplorer.util.Constants;
+import com.google.api.client.auth.oauth2.BearerToken;
+import com.google.api.client.auth.oauth2.Credential;
+import com.google.api.client.extensions.android.http.AndroidHttp;
+import com.google.api.client.http.GenericUrl;
+import com.google.api.client.json.jackson2.JacksonFactory;
 import com.microsoft.azure.storage.blob.ListBlobItem;
+import com.wuman.android.auth.AuthorizationFlow;
+import com.wuman.android.auth.AuthorizationUIController;
+import com.wuman.android.auth.DialogFragmentController;
+import com.wuman.android.auth.OAuthManager;
+import com.wuman.android.auth.oauth2.store.SharedPreferencesCredentialStore;
 
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Stack;
+
+import okhttp3.Call;
+import okhttp3.Callback;
+import okhttp3.Request;
+import okhttp3.Response;
 
 public class MainActivity extends AppCompatActivity
         implements
@@ -43,6 +70,7 @@ public class MainActivity extends AppCompatActivity
         IDialogFragmentClickListener {
 
     private static final int REMOVE_STORAGE_ACCOUNT_REQUEST_CODE = 1;
+    private static final String TAG = MainActivity.class.getName();
     private StorageAccountAdapter storageAccountAdapter;
     private BlobContainersAdapter blobContainersAdapter;
     private Spinner navMenuHeaderSpinner;
@@ -77,33 +105,6 @@ public class MainActivity extends AppCompatActivity
         drawer.setDrawerListener(toggle);
         toggle.syncState();
 
-        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
-        navigationView.setNavigationItemSelectedListener(this);
-
-        ArrayList<AzureStorageAccount> accounts = AzureStorageExplorerApplication.getAzureStorageAccountSQLiteHelper().getAzureAccounts();
-        storageAccountAdapter = new StorageAccountAdapter(getApplicationContext(), accounts);
-        //setup the spinner in the drawer layout header
-        navMenuHeaderSpinner = (Spinner) navigationView.getHeaderView(0).findViewById(R.id.navBarHeaderSpinner);
-        navMenuHeaderSpinner.setAdapter(storageAccountAdapter);
-        navMenuHeaderSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                final AzureStorageAccount account = storageAccountAdapter.getItem(position);
-                new Thread(new Runnable() {
-                    @Override
-                    public void run() {
-                        BlobContainerListAsyncTask containerListAsyncTask = new BlobContainerListAsyncTask(MainActivity.this);
-                        containerListAsyncTask.execute(account.getName(), account.getKey());
-                    }
-                }).start();
-            }
-
-            @Override
-            public void onNothingSelected(AdapterView<?> parent) {
-
-            }
-        });
-
         blobContainersAdapter = new BlobContainersAdapter(getApplicationContext(), new ArrayList<CloudBlobContainerSerializable>() {
         });
         toolbarSpinner = (Spinner) toolbar.findViewById(R.id.spinner_nav);
@@ -134,6 +135,214 @@ public class MainActivity extends AppCompatActivity
         Fragment containerListFragment = BlobListFragment.instantiate(getApplicationContext(), BlobListFragment.class.getName());
         ActivityUtils.addFragmentToActivity(getSupportFragmentManager(), containerListFragment, R.id.contentFrame, BlobListFragment.class.getName());
         fragmentStack.push(containerListFragment);
+
+        authenticate();
+    }
+
+    private void authenticate() {
+        SharedPreferencesCredentialStore credentialStore =
+                new SharedPreferencesCredentialStore(getApplicationContext(),
+                        "AzureStorageExplorerApplication", new JacksonFactory());
+
+        AuthorizationFlow.Builder builder = new AuthorizationFlow.Builder(
+                BearerToken.authorizationHeaderAccessMethod(),
+                AndroidHttp.newCompatibleTransport(),
+                new JacksonFactory(),
+                new GenericUrl(Constants.AZURE_TOKEN_URL),
+                null,
+                Constants.AZURE_AD_APP_CLIENT_ID,
+                Constants.AZURE_AUTHORIZE_URL);
+        builder.setCredentialStore(credentialStore);
+        AuthorizationFlow flow = builder.build();
+
+        AuthorizationUIController controller =
+                new DialogFragmentController(getFragmentManager()) {
+
+                    @Override
+                    public String getRedirectUri() throws IOException {
+                        return "https://azurestorageexplorer";
+                    }
+
+                    @Override
+                    public boolean isJavascriptEnabledForWebView() {
+                        return true;
+                    }
+
+                    @Override
+                    public boolean disableWebViewCache() {
+                        return true;
+                    }
+
+                    @Override
+                    public boolean removePreviousCookie() {
+                        return false;
+                    }
+
+                };
+
+        OAuthManager oauth = new OAuthManager(flow, controller);
+        OAuthManager.OAuthCallback<Credential> callback = new OAuthManager.OAuthCallback<Credential>() {
+            private final String TAG = OAuthManager.OAuthCallback.class.getName();
+
+            @Override
+            public void run(OAuthManager.OAuthFuture<Credential> future) {
+                try {
+                    Credential credential = future.getResult();
+                    String accessToken = credential.getAccessToken();
+                    AzureStorageExplorerApplication.accessToken = accessToken;
+                    getAzureSubscriptions();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                // make API queries with credential.getAccessToken()
+            }
+        };
+        oauth.authorizeImplicitly("", callback, null);
+    }
+
+    private void getAzureSubscriptions() {
+        ArrayList<AzureSubscription> subscriptions = AzureStorageExplorerApplication.getAzureSubscriptionsSQLiteHelper().getAzureSubscriptions();
+        setupStorageAccountsInNavigationView();
+
+        //if we have already cached the subscriptions, don't fetch them again...let the user tap the "sync" icon to initiate a refresh
+        if (subscriptions.size() > 0) {
+            return;
+        }
+
+        Request request = new Request.Builder()
+                .url(Constants.AZURE_LIST_SUBSCRIPTIONS)
+                .addHeader("Authorization", String.format("Bearer %s", AzureStorageExplorerApplication.accessToken))
+                .addHeader("x-ms-version", Constants.AZURE_API_VERSION)
+                .build();
+
+        Call call = AzureStorageExplorerApplication.mOkHttpClient.newCall(request);
+        call.enqueue(new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+                Log.e(TAG, "Failed to execute " + call.request(), e);
+            }
+
+            @Override
+            public void onResponse(Call call, Response response) throws IOException {
+                if (!response.isSuccessful()) {
+                    throw new IOException("Unexpected code " + response);
+                }
+                final List<Subscription> subscriptions = XmlToPojo.parseList(Subscription.class, response.body().byteStream(), Xml.Encoding.UTF_8);
+
+                //start a new thread to insert all subscriptions into SQLite
+                new Thread(new AzureSubscriptionSQLiteRunnable(subscriptions)).start();
+
+                initStorageAccounts(subscriptions);
+            }
+        });
+    }
+
+    private void initStorageAccounts(List<Subscription> subscriptions) {
+        ArrayList<AzureStorageAccount> accounts = AzureStorageExplorerApplication.getAzureStorageAccountSQLiteHelper().getAzureAccounts();
+        //return if we already cached storage accounts..let the user explicity initiate a sync
+        if (accounts.size() > 0) {
+            return;
+        }
+
+        for (Subscription subscription : subscriptions) {
+            Request request = new Request.Builder()
+                    .url(String.format(Constants.AZURE_LIST_STORAGE_ACCOUNTS, subscription.getSubscriptionID()))
+                    .addHeader("Authorization", String.format("Bearer %s", AzureStorageExplorerApplication.accessToken))
+                    .addHeader("x-ms-version", Constants.AZURE_API_VERSION)
+                    .addHeader("subscriptionID", subscription.getSubscriptionID())
+                    .build();
+
+            Call call = AzureStorageExplorerApplication.mOkHttpClient.newCall(request);
+            call.enqueue(new Callback() {
+                @Override
+                public void onFailure(final Call call, IOException e) {
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            Toast.makeText(getApplicationContext(), String.format("Failed to fetch storage accounts for subscription ID: %s", call.request().header("subscriptionID")), Toast.LENGTH_SHORT).show();
+                        }
+                    });
+                }
+
+                @Override
+                public void onResponse(final Call call, Response response) throws IOException {
+                    if (!response.isSuccessful()) {
+                        throw new IOException("Unexpected code " + response);
+                    }
+                    final List<StorageService> storageServices = XmlToPojo.parseList(StorageService.class, response.body().byteStream(), Xml.Encoding.UTF_8);
+
+                    //now get the keys for all storage accounts
+                    new Thread(new StorageKeyRestClient(storageServices, call.request().header("subscriptionID"), new IAsyncTaskCallback<AzureStorageAccount>() {
+                        @Override
+                        public void finished(final AzureStorageAccount storageAccount) {
+                            runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    onStorageAccountAdded(storageAccount);
+                                }
+                            });
+                        }
+
+                        @Override
+                        public void failed(String exceptionMessage) {
+
+                        }
+                    })).start();
+                }
+            });
+        }
+    }
+
+    private void setupStorageAccountsInNavigationView() {
+        ArrayList<AzureStorageAccount> accounts = AzureStorageExplorerApplication.getAzureStorageAccountSQLiteHelper().getAzureAccounts();
+        storageAccountAdapter = new StorageAccountAdapter(getApplicationContext(), accounts);
+
+        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
+        navigationView.setNavigationItemSelectedListener(this);
+        //setup the spinner in the drawer layout header
+        navMenuHeaderSpinner = (Spinner) navigationView.getHeaderView(0).findViewById(R.id.navBarHeaderSpinner);
+        navMenuHeaderSpinner.setAdapter(storageAccountAdapter);
+        navMenuHeaderSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                final AzureStorageAccount account = storageAccountAdapter.getItem(position);
+                if (account.getKey() == null) {
+                    //fetch the key for this account first
+                    List<StorageService> storageServices = new ArrayList<>();
+                    storageServices.add(new StorageService(account.getName()));
+                    if (account.getSubscriptionId() != null) {
+                        new Thread(new StorageKeyRestClient(storageServices, account.getSubscriptionId(), new IAsyncTaskCallback<AzureStorageAccount>() {
+                            @Override
+                            public void finished(final AzureStorageAccount storageAccount) {
+                                //update the storage account in the SQLite DB with the key
+                                AzureStorageExplorerApplication.getAzureStorageAccountSQLiteHelper().updateStorageAccount(storageAccount);
+                                //now get the containers for this storage account
+                                BlobContainerListAsyncTask containerListAsyncTask = new BlobContainerListAsyncTask(MainActivity.this);
+                                containerListAsyncTask.execute(storageAccount.getName(), storageAccount.getKey());
+                            }
+
+                            @Override
+                            public void failed(String exceptionMessage) {
+
+                            }
+                        })).start();
+                    }
+                } else {
+                    new Thread(new Runnable() {
+                        @Override
+                        public void run() {
+                            BlobContainerListAsyncTask containerListAsyncTask = new BlobContainerListAsyncTask(MainActivity.this);
+                            containerListAsyncTask.execute(account.getName(), account.getKey());
+                        }
+                    }).start();
+                }
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+
+            }
+        });
     }
 
     @Override

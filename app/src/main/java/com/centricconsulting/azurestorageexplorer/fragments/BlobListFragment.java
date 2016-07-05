@@ -28,9 +28,9 @@ import com.centricconsulting.azurestorageexplorer.asynctask.interfaces.IAsyncTas
 import com.centricconsulting.azurestorageexplorer.fragments.interfaces.IBlobItemNavigateListener;
 import com.centricconsulting.azurestorageexplorer.fragments.interfaces.IDialogFragmentClickListener;
 import com.centricconsulting.azurestorageexplorer.fragments.interfaces.ISpinnerNavListener;
-import com.centricconsulting.azurestorageexplorer.models.AzureStorageAccount;
 import com.centricconsulting.azurestorageexplorer.models.CloudBlobContainerSerializable;
 import com.centricconsulting.azurestorageexplorer.models.CloudBlobDirectorySerializable;
+import com.centricconsulting.azurestorageexplorer.storage.models.AzureStorageAccount;
 import com.centricconsulting.azurestorageexplorer.util.Helpers;
 import com.microsoft.azure.storage.StorageException;
 import com.microsoft.azure.storage.blob.CloudBlob;
