@@ -11,9 +11,9 @@ Pre-alpha
 - Upload blobs
 - ~~View blobs~~
 - Edit blob metadata like Cache-Control, Content-Type etc.
+- ~~Connect to your Azure subscription(?)~~
 
 # Future roadmap
-- Connect to your Azure subscription(?)
 - Tables(?)
 - Queues(?)
 
