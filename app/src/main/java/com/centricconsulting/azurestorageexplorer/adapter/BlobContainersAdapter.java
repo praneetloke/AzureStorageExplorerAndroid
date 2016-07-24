@@ -37,9 +37,9 @@ public class BlobContainersAdapter extends SpinnerArrayAdapter<CloudBlobContaine
         TextView itemText = (TextView) item.findViewById(R.id.spinnerItemText1);
         if (itemText != null) {
             itemText.setText(getDataset().get(position).getName());
+            item.setTag(itemText.getText());
         }
 
-        item.setTag(itemText.getText());
         return item;
     }
 }

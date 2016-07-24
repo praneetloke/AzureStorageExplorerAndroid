@@ -9,8 +9,7 @@
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
     app:layout_behavior="@string/appbar_scrolling_view_behavior"
-    tools:context="com.centricconsulting.azurestorageexplorer.MainActivity"
-    tools:showIn="@layout/app_bar_main">
+    tools:context="com.centricconsulting.azurestorageexplorer.MainActivity">
 
     <android.support.v7.widget.RecyclerView
         android:id="@+id/list"

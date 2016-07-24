@@ -17,6 +17,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
+import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import com.centricconsulting.azurestorageexplorer.R;
@@ -61,6 +62,7 @@ public class BlobListFragment extends Fragment
     private CloudBlobDirectorySerializable mCurrentBlobDirectory;
     private int mCurrentlySelectedBlobItemAdapterPosition;
     private ListPopupWindow mListPopupWindow;
+    private ProgressBar mProgressBar;
 
     public BlobListFragment() {
         if (BLOB_ACTIONS.size() == 0) {
@@ -84,18 +86,26 @@ public class BlobListFragment extends Fragment
     public View onCreateView(LayoutInflater layoutInflater, ViewGroup container, Bundle savedInstanceState) {
         View root = layoutInflater.inflate(R.layout.blob_list_fragment, container, false);
 
-        RecyclerView recyclerView = (RecyclerView) root.findViewById(R.id.containersRecyclerView);
+        RecyclerView recyclerView = (RecyclerView) root.findViewById(R.id.blobListRecyclerView);
         recyclerView.setHasFixedSize(true);
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getActivity());
         recyclerView.setLayoutManager(linearLayoutManager);
         recyclerViewAdapter = new BlobRecyclerViewAdapter(null, this);
         recyclerView.setAdapter(recyclerViewAdapter);
 
+        mProgressBar = (ProgressBar) root.findViewById(R.id.blobListProgressBar);
+
         return root;
     }
 
     @Override
     public void selectionChanged(AzureStorageAccount account, CloudBlobContainerSerializable container) {
+        getActivity().runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                mProgressBar.setVisibility(View.VISIBLE);
+            }
+        });
         //get the blobs for this container
         BlobListAsyncTask blobListAsyncTask = new BlobListAsyncTask(this);
         blobListAsyncTask.execute(account.getName(), account.getKey(), container.getName());
@@ -103,12 +113,23 @@ public class BlobListFragment extends Fragment
 
     @Override
     public void finished(ArrayList<ListBlobItem> result) {
+        getActivity().runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                mProgressBar.setVisibility(View.GONE);
+            }
+        });
         recyclerViewAdapter.replaceDataset(result);
     }
 
     @Override
     public void failed(String exceptionMessage) {
-
+        getActivity().runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                mProgressBar.setVisibility(View.GONE);
+            }
+        });
     }
 
     @Override

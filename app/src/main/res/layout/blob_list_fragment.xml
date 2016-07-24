@@ -7,8 +7,18 @@
     android:orientation="vertical"
     tools:context="com.centricconsulting.azurestorageexplorer.MainActivity">
 
+    <ProgressBar
+        android:id="@+id/blobListProgressBar"
+        style="@style/Widget.AppCompat.ProgressBar.Horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:indeterminateOnly="true"
+        android:scaleY="2"
+        android:translationY="-6dp"
+        android:visibility="gone" />
+
     <android.support.v7.widget.RecyclerView
-        android:id="@+id/containersRecyclerView"
+        android:id="@+id/blobListRecyclerView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:clipToPadding="false"
