@@ -29,9 +29,9 @@ public class ConfirmationDialogFragment extends DialogFragment {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         if (getTargetFragment() != null) {
-                            ((IDialogFragmentClickListener) getTargetFragment()).onPositiveClick(getTargetRequestCode());
+                            ((IDialogFragmentClickListener) getTargetFragment()).onConfirmationDialogPositiveClick(getTargetRequestCode());
                         } else {
-                            ((IDialogFragmentClickListener) getActivity()).onPositiveClick(args.getInt("requestCode", 0));
+                            ((IDialogFragmentClickListener) getActivity()).onConfirmationDialogPositiveClick(args.getInt("requestCode", 0));
                         }
                     }
                 })
@@ -40,9 +40,9 @@ public class ConfirmationDialogFragment extends DialogFragment {
                     public void onClick(DialogInterface dialog, int which) {
                         dialog.dismiss();
                         if (getTargetFragment() != null) {
-                            ((IDialogFragmentClickListener) getTargetFragment()).onNegativeClick(getTargetRequestCode());
+                            ((IDialogFragmentClickListener) getTargetFragment()).onConfirmationDialogNegativeClick(getTargetRequestCode());
                         } else {
-                            ((IDialogFragmentClickListener) getActivity()).onNegativeClick(args.getInt("requestCode", 0));
+                            ((IDialogFragmentClickListener) getActivity()).onConfirmationDialogNegativeClick(args.getInt("requestCode", 0));
                         }
                     }
                 });

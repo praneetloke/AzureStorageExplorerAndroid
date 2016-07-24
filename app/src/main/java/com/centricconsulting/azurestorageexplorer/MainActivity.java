@@ -160,7 +160,7 @@ public class MainActivity extends AppCompatActivity
 
                     @Override
                     public String getRedirectUri() throws IOException {
-                        return "https://azurestorageexplorer";
+                        return Constants.AZURE_AUTH_REDIRECT_URI;
                     }
 
                     @Override
@@ -190,7 +190,8 @@ public class MainActivity extends AppCompatActivity
                     Credential credential = future.getResult();
                     String accessToken = credential.getAccessToken();
                     AzureStorageExplorerApplication.accessToken = accessToken;
-                    getAzureSubscriptions();
+
+                    fetchAzureSubscriptions();
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -200,7 +201,7 @@ public class MainActivity extends AppCompatActivity
         oauth.authorizeImplicitly("", callback, null);
     }
 
-    private void getAzureSubscriptions() {
+    private void fetchAzureSubscriptions() {
         ArrayList<AzureSubscription> subscriptions = AzureStorageExplorerApplication.getAzureSubscriptionsSQLiteHelper().getAzureSubscriptions();
         setupStorageAccountsInNavigationView();
 
@@ -232,12 +233,12 @@ public class MainActivity extends AppCompatActivity
                 //start a new thread to insert all subscriptions into SQLite
                 new Thread(new AzureSubscriptionSQLiteRunnable(subscriptions)).start();
 
-                initStorageAccounts(subscriptions);
+                fetchStorageAccounts(subscriptions);
             }
         });
     }
 
-    private void initStorageAccounts(List<Subscription> subscriptions) {
+    private void fetchStorageAccounts(List<Subscription> subscriptions) {
         ArrayList<AzureStorageAccount> accounts = AzureStorageExplorerApplication.getAzureStorageAccountSQLiteHelper().getAzureAccounts();
         //return if we already cached storage accounts..let the user explicity initiate a sync
         if (accounts.size() > 0) {
@@ -442,7 +443,9 @@ public class MainActivity extends AppCompatActivity
     @Override
     public void finished(ArrayList<CloudBlobContainerSerializable> result) {
         //received a list of blob containers..load them into the toolbar's spinner
-        blobContainersAdapter.replaceDataset(result);
+        blobContainersAdapter = new BlobContainersAdapter(getApplicationContext(), result);
+        toolbarSpinner.setAdapter(blobContainersAdapter);
+        toolbarSpinner.dispatchSetSelected(true);
     }
 
     @Override
@@ -462,7 +465,7 @@ public class MainActivity extends AppCompatActivity
     }
 
     @Override
-    public void onPositiveClick(int requestCode) {
+    public void onConfirmationDialogPositiveClick(int requestCode) {
         if (requestCode == REMOVE_STORAGE_ACCOUNT_REQUEST_CODE) {
             //first remove all blob list fragments
             if (fragmentStack.size() > 1) {
@@ -472,7 +475,7 @@ public class MainActivity extends AppCompatActivity
     }
 
     @Override
-    public void onNegativeClick(int requestCode) {
+    public void onConfirmationDialogNegativeClick(int requestCode) {
 
     }
 }

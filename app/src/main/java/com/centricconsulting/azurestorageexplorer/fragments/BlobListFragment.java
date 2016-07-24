@@ -190,7 +190,7 @@ public class BlobListFragment extends Fragment
     }
 
     @Override
-    public void onPositiveClick(int requestCode) {
+    public void onConfirmationDialogPositiveClick(int requestCode) {
         if (requestCode == DELETE_REQUEST_CODE) {
             deletionConfirmed();
         }
@@ -221,7 +221,7 @@ public class BlobListFragment extends Fragment
     }
 
     @Override
-    public void onNegativeClick(int requestCode) {
+    public void onConfirmationDialogNegativeClick(int requestCode) {
 
     }
 
