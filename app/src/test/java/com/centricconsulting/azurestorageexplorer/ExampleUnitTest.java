@@ -1,4 +1,4 @@
-package com.centricconsulting.azurestorageexplorer;
+package com.pl.azurestorageexplorer;
 
 import org.junit.Test;
 

@@ -1,17 +1,19 @@
-package com.centricconsulting.azurestorageexplorer.storage.models;
+package com.pl.azurestorageexplorer.storage.models;
 
 /**
- * Created by Praneet Loke on 7/4/2016.
+ * Created by Praneet Loke on 7/24/2016.
  */
-public class AzureSubscription {
+public class AzureSubscriptionFilter {
     private int id;
     private String Name;
     private String SubscriptionId;
+    private boolean isSelected;
 
-    public AzureSubscription(int id, String name, String subscriptionId) {
+    public AzureSubscriptionFilter(int id, String name, String subscriptionId, boolean isSelected) {
         this.id = id;
-        Name = name;
-        SubscriptionId = subscriptionId;
+        this.Name = name;
+        this.SubscriptionId = subscriptionId;
+        this.isSelected = isSelected;
     }
 
     public int getId() {
@@ -36,5 +38,13 @@ public class AzureSubscription {
 
     public void setSubscriptionId(String subscriptionId) {
         SubscriptionId = subscriptionId;
+    }
+
+    public boolean isSelected() {
+        return isSelected;
+    }
+
+    public void setSelected(boolean selected) {
+        isSelected = selected;
     }
 }

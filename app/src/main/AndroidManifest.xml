@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.centricconsulting.azurestorageexplorer">
+    package="com.pl.azurestorageexplorer">
 
     <!--Beginning with Android 4.4,
     reading or writing files in your app's private directories does not require the

@@ -1,4 +1,4 @@
-package com.centricconsulting.azurestorageexplorer;
+package com.pl.azurestorageexplorer;
 
 import android.app.Application;
 import android.test.ApplicationTestCase;
