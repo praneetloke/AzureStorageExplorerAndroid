@@ -194,7 +194,7 @@ public class XmlToPojo {
                                 }
                             }
                         } catch (NoSuchFieldException e) {
-                            e.printStackTrace();
+                            //we couldn't find the field in the model provided, so ignore and continue
                         }
                     }
                     break;
