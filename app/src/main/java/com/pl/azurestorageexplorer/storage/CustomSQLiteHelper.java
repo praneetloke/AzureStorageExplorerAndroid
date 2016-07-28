@@ -78,6 +78,28 @@ public class CustomSQLiteHelper extends SQLiteOpenHelper {
         return accounts;
     }
 
+    public ArrayList<AzureStorageAccount> getFilteredAzureAccounts() {
+        Cursor cursor = getReadableDatabase().rawQuery(
+                String.format("SELECT a.id, a.%s, a.%s, a.%s FROM %s a JOIN %s b ON b.%s = a.%s WHERE b.%s = 1;",
+                        AzureStorageAccountSQLiteHelper.NAME,
+                        AzureStorageAccountSQLiteHelper.KEY,
+                        AzureStorageAccountSQLiteHelper.SUBSCRIPTION_ID,
+                        AzureStorageAccountSQLiteHelper.TABLE_NAME,
+                        AzureSubscriptionsFilterSQLiteHelper.TABLE_NAME,
+                        AzureSubscriptionsFilterSQLiteHelper.SUBSCRIPTION_ID,
+                        AzureSubscriptionsSQLiteHelper.SUBSCRIPTION_ID,
+                        AzureSubscriptionsFilterSQLiteHelper.IS_SELECTED),
+                new String[]{});
+
+        ArrayList<AzureStorageAccount> accounts = new ArrayList<>();
+        while (cursor.moveToNext()) {
+            accounts.add(new AzureStorageAccount(cursor.getInt(0), cursor.getString(1), cursor.getString(2), cursor.getString(3)));
+        }
+
+        cursor.close();
+        return accounts;
+    }
+
     public void updateStorageAccount(AzureStorageAccount storageAccount) {
         ContentValues contentValues = new ContentValues();
         contentValues.put(AzureStorageAccountSQLiteHelper.NAME, storageAccount.getName());
@@ -119,6 +141,13 @@ public class CustomSQLiteHelper extends SQLiteOpenHelper {
 
         cursor.close();
         return subscriptions;
+    }
+
+    public int updateAzureSubscriptionsFilterSelection(AzureSubscriptionFilter subscriptionFilter) {
+        ContentValues contentValues = new ContentValues();
+        contentValues.put(AzureSubscriptionsFilterSQLiteHelper.IS_SELECTED, subscriptionFilter.isSelected() ? 1 : 0);
+
+        return getWritableDatabase().update(AzureSubscriptionsFilterSQLiteHelper.TABLE_NAME, contentValues, "id = ?", new String[]{Integer.toString(subscriptionFilter.getId())});
     }
 
     public ArrayList<AzureSubscriptionFilter> getSelectedAzureSubscriptions() {

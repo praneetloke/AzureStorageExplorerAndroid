@@ -22,6 +22,7 @@ public class SubscriptionItemViewHolder extends RecyclerView.ViewHolder implemen
 
         subscriptionId = (TextView) itemView.findViewById(R.id.subscriptionId);
         isSubscriptionSelected = (CheckBox) itemView.findViewById(R.id.isSubscriptionSelected);
+        isSubscriptionSelected.setOnClickListener(this);
     }
 
     @Override

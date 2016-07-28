@@ -14,6 +14,7 @@ import com.pl.azurestorageexplorer.AzureStorageExplorerApplication;
 import com.pl.azurestorageexplorer.R;
 import com.pl.azurestorageexplorer.adapter.SubscriptionsRecyclerViewAdapter;
 import com.pl.azurestorageexplorer.adapter.interfaces.IRecyclerViewAdapterClickListener;
+import com.pl.azurestorageexplorer.fragments.interfaces.ISubscriptionSelectionChangeListener;
 import com.pl.azurestorageexplorer.storage.models.AzureSubscriptionFilter;
 
 import java.util.ArrayList;
@@ -21,7 +22,8 @@ import java.util.ArrayList;
 /**
  * Created by Praneet Loke on 4/26/2016.
  */
-public class SubscriptionsFilterDialogFragment extends DialogFragment implements IRecyclerViewAdapterClickListener<AzureSubscriptionFilter> {
+public class SubscriptionsFilterDialogFragment extends DialogFragment
+        implements IRecyclerViewAdapterClickListener<AzureSubscriptionFilter> {
     private ArrayList<AzureSubscriptionFilter> subscriptions;
 
     public SubscriptionsFilterDialogFragment() {
@@ -30,6 +32,7 @@ public class SubscriptionsFilterDialogFragment extends DialogFragment implements
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+
         // Get the layout inflater
         LayoutInflater inflater = getActivity().getLayoutInflater();
         View view = inflater.inflate(R.layout.subscriptions_filter_layout, null);
@@ -59,6 +62,9 @@ public class SubscriptionsFilterDialogFragment extends DialogFragment implements
 
     @Override
     public void onClick(View view, int adapterPosition, AzureSubscriptionFilter item) {
-        //TODO: tell main activity to filter the storage accounts in the nav menu header's spinner
+        AzureStorageExplorerApplication.getCustomSQLiteHelper().updateAzureSubscriptionsFilterSelection(item);
+
+        //tell main activity to filter the storage accounts in the nav menu header's spinner
+        ((ISubscriptionSelectionChangeListener) getActivity()).onSubscriptionSelectionChanged(item);
     }
 }

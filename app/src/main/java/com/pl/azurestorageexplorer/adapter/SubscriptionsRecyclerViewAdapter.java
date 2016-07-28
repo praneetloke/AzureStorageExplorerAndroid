@@ -50,6 +50,9 @@ public class SubscriptionsRecyclerViewAdapter extends LinearRecyclerViewAdapter<
     @Override
     public void onClick(View view, int adapterPosition) {
         if (adapterPosition != RecyclerView.NO_POSITION) {
+            //update the isSelected in the adapter
+            this.getDataset().get(adapterPosition).setSelected(((CheckBox) view).isChecked());
+            //tell the owning fragment
             recyclerViewAdapterClickListener.onClick(view, adapterPosition, this.getDataset().get(adapterPosition));
         }
     }

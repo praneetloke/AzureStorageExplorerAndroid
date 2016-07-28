@@ -1,6 +1,7 @@
 package com.pl.azurestorageexplorer;
 
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
 import android.support.design.widget.Snackbar;
@@ -37,6 +38,7 @@ import com.pl.azurestorageexplorer.fragments.SubscriptionsFilterDialogFragment;
 import com.pl.azurestorageexplorer.fragments.interfaces.IBlobItemNavigateListener;
 import com.pl.azurestorageexplorer.fragments.interfaces.IDialogFragmentClickListener;
 import com.pl.azurestorageexplorer.fragments.interfaces.ISpinnerNavListener;
+import com.pl.azurestorageexplorer.fragments.interfaces.ISubscriptionSelectionChangeListener;
 import com.pl.azurestorageexplorer.models.CloudBlobContainerSerializable;
 import com.pl.azurestorageexplorer.models.StorageService;
 import com.pl.azurestorageexplorer.models.Subscription;
@@ -44,6 +46,7 @@ import com.pl.azurestorageexplorer.parser.XmlToPojo;
 import com.pl.azurestorageexplorer.restclient.StorageKeyRestClient;
 import com.pl.azurestorageexplorer.runnable.AzureSubscriptionFilterSQLiteRunnable;
 import com.pl.azurestorageexplorer.runnable.AzureSubscriptionSQLiteRunnable;
+import com.pl.azurestorageexplorer.spinner.ReSelectableSpinner;
 import com.pl.azurestorageexplorer.storage.models.AzureStorageAccount;
 import com.pl.azurestorageexplorer.storage.models.AzureSubscription;
 import com.pl.azurestorageexplorer.storage.models.AzureSubscriptionFilter;
@@ -71,15 +74,18 @@ public class MainActivity extends AppCompatActivity
         AddAccountDialogFragment.OnFragmentInteractionListener,
         IAsyncTaskCallback<ArrayList<CloudBlobContainerSerializable>>,
         BlobListFragment.OnFragmentInteractionListener,
-        IDialogFragmentClickListener {
+        IDialogFragmentClickListener,
+        ISubscriptionSelectionChangeListener {
 
     private static final int REMOVE_STORAGE_ACCOUNT_REQUEST_CODE = 1;
     private static final String TAG = MainActivity.class.getName();
     private StorageAccountAdapter storageAccountAdapter;
     private BlobContainersAdapter blobContainersAdapter;
-    private Spinner navMenuHeaderSpinner;
+    private ReSelectableSpinner navMenuHeaderSpinner;
     private Spinner toolbarSpinner;
     private Stack<Fragment> fragmentStack;
+    private DrawerLayout drawer;
+    private Handler handler = new Handler();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -103,7 +109,7 @@ public class MainActivity extends AppCompatActivity
             });
         }
 
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
                 this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
         drawer.setDrawerListener(toggle);
@@ -300,22 +306,23 @@ public class MainActivity extends AppCompatActivity
     }
 
     private void setupStorageAccountsInNavigationView() {
-        ArrayList<AzureSubscriptionFilter> selectedSubscriptions = AzureStorageExplorerApplication.getCustomSQLiteHelper().getSelectedAzureSubscriptions();
-        ArrayList<String> subscriptionIds = new ArrayList<>();
-        for (AzureSubscriptionFilter subscription : selectedSubscriptions) {
-            subscriptionIds.add(subscription.getSubscriptionId());
-        }
-        ArrayList<AzureStorageAccount> accounts = AzureStorageExplorerApplication.getCustomSQLiteHelper().getAzureAccountsForSubscriptionIds(subscriptionIds);
+        ArrayList<AzureStorageAccount> accounts = AzureStorageExplorerApplication.getCustomSQLiteHelper().getFilteredAzureAccounts();
         storageAccountAdapter = new StorageAccountAdapter(getApplicationContext(), accounts);
 
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
         //setup the spinner in the drawer layout header
-        navMenuHeaderSpinner = (Spinner) navigationView.getHeaderView(0).findViewById(R.id.navBarHeaderSpinner);
+        navMenuHeaderSpinner = (ReSelectableSpinner) navigationView.getHeaderView(0).findViewById(R.id.navBarHeaderSpinner);
         navMenuHeaderSpinner.setAdapter(storageAccountAdapter);
         navMenuHeaderSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                handler.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        drawer.closeDrawer(GravityCompat.START);
+                    }
+                }, 300);
                 //reset the fragment stack in case the user navigated into blob containers
                 resetBlobListFragmentStack();
                 final AzureStorageAccount account = storageAccountAdapter.getItem(position);
@@ -437,7 +444,6 @@ public class MainActivity extends AppCompatActivity
         // Handle navigation view item clicks here.
         int id = item.getItemId();
 
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
 
         if (id == R.id.removeAccount) {
@@ -497,5 +503,12 @@ public class MainActivity extends AppCompatActivity
     @Override
     public void onConfirmationDialogNegativeClick(int requestCode) {
 
+    }
+
+    @Override
+    public void onSubscriptionSelectionChanged(AzureSubscriptionFilter item) {
+        ArrayList<AzureStorageAccount> accounts = AzureStorageExplorerApplication.getCustomSQLiteHelper().getFilteredAzureAccounts();
+        storageAccountAdapter.replaceDataset(accounts);
+        navMenuHeaderSpinner.setSelection(0);
     }
 }

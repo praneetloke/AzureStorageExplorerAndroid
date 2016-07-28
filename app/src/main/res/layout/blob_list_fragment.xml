@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    tools:context="com.centricconsulting.azurestorageexplorer.MainActivity">
+    tools:context="com.pl.azurestorageexplorer.MainActivity">
 
     <ProgressBar
         android:id="@+id/blobListProgressBar"
