@@ -9,10 +9,10 @@
             android:title="@string/blobs" />
 
         <item
-            android:id="@+id/removeAccount"
+            android:id="@+id/signOut"
             android:checkable="false"
             android:icon="@drawable/ic_delete"
-            android:title="@string/remove_account" />
+            android:title="@string/sign_out" />
     </group>
 
 </menu>

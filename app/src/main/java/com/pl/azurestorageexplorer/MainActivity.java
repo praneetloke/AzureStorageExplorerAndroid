@@ -1,5 +1,6 @@
 package com.pl.azurestorageexplorer;
 
+import android.app.ActivityManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.design.widget.FloatingActionButton;
@@ -62,6 +63,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Stack;
+import java.util.concurrent.CancellationException;
 
 import okhttp3.Call;
 import okhttp3.Callback;
@@ -77,7 +79,7 @@ public class MainActivity extends AppCompatActivity
         IDialogFragmentClickListener,
         ISubscriptionSelectionChangeListener {
 
-    private static final int REMOVE_STORAGE_ACCOUNT_REQUEST_CODE = 1;
+    private static final int SIGN_OUT_REQUEST_CODE = 1;
     private static final String TAG = MainActivity.class.getName();
     private StorageAccountAdapter storageAccountAdapter;
     private BlobContainersAdapter blobContainersAdapter;
@@ -208,7 +210,13 @@ public class MainActivity extends AppCompatActivity
                 // make API queries with credential.getAccessToken()
             }
         };
-        oauth.authorizeImplicitly("", callback, null);
+
+        try {
+            oauth.authorizeImplicitly("", callback, null);
+        } catch (CancellationException ex) {
+            //ignore
+            Toast.makeText(MainActivity.this, "Sign-in process canceled.", Toast.LENGTH_SHORT).show();
+        }
     }
 
     private void fetchAzureSubscriptions() {
@@ -419,8 +427,6 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.main, menu);
         if (fragmentStack != null && fragmentStack.size() >= 2) {
             getSupportActionBar().setDisplayShowTitleEnabled(true);
             toolbarSpinner.setVisibility(View.GONE);
@@ -444,17 +450,22 @@ public class MainActivity extends AppCompatActivity
         // Handle navigation view item clicks here.
         int id = item.getItemId();
 
-        drawer.closeDrawer(GravityCompat.START);
+        handler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                drawer.closeDrawer(GravityCompat.START);
+            }
+        }, 200);
 
-        if (id == R.id.removeAccount) {
+        if (id == R.id.signOut) {
             //delete the currently selected account
             Bundle args = new Bundle();
-            args.putString("title", getString(R.string.delete_storage_account_title));
-            args.putString("message", getString(R.string.delete_storage_account_confirmation_message));
-            args.putInt("requestCode", REMOVE_STORAGE_ACCOUNT_REQUEST_CODE);
-            ConfirmationDialogFragment removeStorageAccount = new ConfirmationDialogFragment();
-            removeStorageAccount.setArguments(args);
-            removeStorageAccount.show(getSupportFragmentManager(), ConfirmationDialogFragment.class.getName());
+            args.putString("title", getString(R.string.sign_out_dialog_title));
+            args.putString("message", getString(R.string.sign_out_dialog_confirmation_message));
+            args.putInt("requestCode", SIGN_OUT_REQUEST_CODE);
+            ConfirmationDialogFragment signOutDialogFragment = new ConfirmationDialogFragment();
+            signOutDialogFragment.setArguments(args);
+            signOutDialogFragment.show(getSupportFragmentManager(), ConfirmationDialogFragment.class.getName());
         }
 
         return true;
@@ -492,11 +503,11 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public void onConfirmationDialogPositiveClick(int requestCode) {
-        if (requestCode == REMOVE_STORAGE_ACCOUNT_REQUEST_CODE) {
+        if (requestCode == SIGN_OUT_REQUEST_CODE) {
             //first remove all blob list fragments
-            if (fragmentStack.size() > 1) {
+            resetBlobListFragmentStack();
 
-            }
+            ((ActivityManager) getApplicationContext().getSystemService(ACTIVITY_SERVICE)).clearApplicationUserData();
         }
     }
 
