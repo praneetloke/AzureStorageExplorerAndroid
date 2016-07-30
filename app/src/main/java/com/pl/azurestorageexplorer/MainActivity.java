@@ -157,10 +157,6 @@ public class MainActivity extends AppCompatActivity
         ActivityUtils.addFragmentToActivity(getSupportFragmentManager(), containerListFragment, R.id.contentFrame, BlobListFragment.class.getName());
         fragmentStack.push(containerListFragment);
 
-        //TODO: *******remove after testing!!
-        AzureStorageExplorerApplication.getCustomSQLiteHelper().clearAllData();
-        //TODO: end
-
         credentialStore =
                 new SharedPreferencesCredentialStore(getApplicationContext(),
                         "AzureStorageExplorerApplication", JacksonFactory.getDefaultInstance());
