@@ -150,22 +150,9 @@ public class CustomSQLiteHelper extends SQLiteOpenHelper {
         return getWritableDatabase().update(AzureSubscriptionsFilterSQLiteHelper.TABLE_NAME, contentValues, "id = ?", new String[]{Integer.toString(subscriptionFilter.getId())});
     }
 
-    public ArrayList<AzureSubscriptionFilter> getSelectedAzureSubscriptions() {
-        Cursor cursor = getReadableDatabase().rawQuery(
-                String.format("select id, %s, %s, %s from %s where %s = 1;",
-                        AzureSubscriptionsFilterSQLiteHelper.NAME,
-                        AzureSubscriptionsFilterSQLiteHelper.SUBSCRIPTION_ID,
-                        AzureSubscriptionsFilterSQLiteHelper.IS_SELECTED,
-                        AzureSubscriptionsFilterSQLiteHelper.TABLE_NAME,
-                        AzureSubscriptionsFilterSQLiteHelper.IS_SELECTED),
-                new String[]{});
-
-        ArrayList<AzureSubscriptionFilter> subscriptions = new ArrayList<>();
-        while (cursor.moveToNext()) {
-            subscriptions.add(new AzureSubscriptionFilter(cursor.getInt(0), cursor.getString(1), cursor.getString(2), (cursor.getInt(3) == 1 ? true : false)));
-        }
-
-        cursor.close();
-        return subscriptions;
+    public void clearAllData() {
+        getWritableDatabase().delete(AzureStorageAccountSQLiteHelper.TABLE_NAME, "", new String[]{});
+        getWritableDatabase().delete(AzureSubscriptionsSQLiteHelper.TABLE_NAME, "", new String[]{});
+        getWritableDatabase().delete(AzureSubscriptionsFilterSQLiteHelper.TABLE_NAME, "", new String[]{});
     }
 }

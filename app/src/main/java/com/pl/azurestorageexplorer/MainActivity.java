@@ -1,6 +1,6 @@
 package com.pl.azurestorageexplorer;
 
-import android.app.ActivityManager;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.design.widget.FloatingActionButton;
@@ -35,6 +35,7 @@ import com.pl.azurestorageexplorer.asynctask.interfaces.IAsyncTaskCallback;
 import com.pl.azurestorageexplorer.fragments.AddAccountDialogFragment;
 import com.pl.azurestorageexplorer.fragments.BlobListFragment;
 import com.pl.azurestorageexplorer.fragments.ConfirmationDialogFragment;
+import com.pl.azurestorageexplorer.fragments.ProgressDialogFragment;
 import com.pl.azurestorageexplorer.fragments.SubscriptionsFilterDialogFragment;
 import com.pl.azurestorageexplorer.fragments.interfaces.IBlobItemNavigateListener;
 import com.pl.azurestorageexplorer.fragments.interfaces.IDialogFragmentClickListener;
@@ -88,6 +89,9 @@ public class MainActivity extends AppCompatActivity
     private Stack<Fragment> fragmentStack;
     private DrawerLayout drawer;
     private Handler handler = new Handler();
+    private SharedPreferencesCredentialStore credentialStore;
+    private AuthorizationFlow authorizationFlow;
+    private ProgressDialogFragment progressDialogFragment = new ProgressDialogFragment();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -152,7 +156,7 @@ public class MainActivity extends AppCompatActivity
     }
 
     private void authenticate() {
-        SharedPreferencesCredentialStore credentialStore =
+        credentialStore =
                 new SharedPreferencesCredentialStore(getApplicationContext(),
                         "AzureStorageExplorerApplication", new JacksonFactory());
 
@@ -165,7 +169,7 @@ public class MainActivity extends AppCompatActivity
                 Constants.AZURE_AD_APP_CLIENT_ID,
                 Constants.AZURE_AUTHORIZE_URL);
         builder.setCredentialStore(credentialStore);
-        AuthorizationFlow flow = builder.build();
+        authorizationFlow = builder.build();
 
         AuthorizationUIController controller =
                 new DialogFragmentController(getFragmentManager(), true) {
@@ -187,12 +191,12 @@ public class MainActivity extends AppCompatActivity
 
                     @Override
                     public boolean removePreviousCookie() {
-                        return false;
+                        return true;
                     }
 
                 };
 
-        OAuthManager oauth = new OAuthManager(flow, controller);
+        OAuthManager oauth = new OAuthManager(authorizationFlow, controller);
         OAuthManager.OAuthCallback<Credential> callback = new OAuthManager.OAuthCallback<Credential>() {
             private final String TAG = OAuthManager.OAuthCallback.class.getName();
 
@@ -212,7 +216,7 @@ public class MainActivity extends AppCompatActivity
         };
 
         try {
-            oauth.authorizeImplicitly("", callback, null);
+            oauth.authorizeImplicitly("default", callback, null);
         } catch (CancellationException ex) {
             //ignore
             Toast.makeText(MainActivity.this, "Sign-in process canceled.", Toast.LENGTH_SHORT).show();
@@ -227,6 +231,9 @@ public class MainActivity extends AppCompatActivity
         if (subscriptions.size() > 0) {
             return;
         }
+
+        //show a progress dialog..this is going to take some time
+        progressDialogFragment.show(getSupportFragmentManager(), ProgressDialogFragment.class.getName());
 
         Request request = new Request.Builder()
                 .url(Constants.AZURE_LIST_SUBSCRIPTIONS)
@@ -261,6 +268,7 @@ public class MainActivity extends AppCompatActivity
         ArrayList<AzureStorageAccount> accounts = AzureStorageExplorerApplication.getCustomSQLiteHelper().getAzureAccounts();
         //return if we already cached storage accounts..let the user explicity initiate a sync
         if (accounts.size() > 0) {
+            progressDialogFragment.dismiss();
             return;
         }
 
@@ -333,6 +341,12 @@ public class MainActivity extends AppCompatActivity
                 }, 300);
                 //reset the fragment stack in case the user navigated into blob containers
                 resetBlobListFragmentStack();
+
+                if (storageAccountAdapter.getCount() == 0) {
+                    //TODO: no storage accounts found and yet a selection happened? Perhaps because of fast-filtering?
+                    return;
+                }
+
                 final AzureStorageAccount account = storageAccountAdapter.getItem(position);
                 if (account.getKey() == null) {
                     //fetch the key for this account first
@@ -473,6 +487,13 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public void onStorageAccountAdded(AzureStorageAccount account) {
+        handler.post(new Runnable() {
+            @Override
+            public void run() {
+                progressDialogFragment.dismiss();
+            }
+        });
+
         storageAccountAdapter.add(account);
         storageAccountAdapter.notifyDataSetChanged();
     }
@@ -504,10 +525,20 @@ public class MainActivity extends AppCompatActivity
     @Override
     public void onConfirmationDialogPositiveClick(int requestCode) {
         if (requestCode == SIGN_OUT_REQUEST_CODE) {
+            progressDialogFragment.show(getSupportFragmentManager(), ProgressDialogFragment.class.getName());
             //first remove all blob list fragments
             resetBlobListFragmentStack();
 
-            ((ActivityManager) getApplicationContext().getSystemService(ACTIVITY_SERVICE)).clearApplicationUserData();
+            //clear all shared prefs
+            SharedPreferences prefs = getApplicationContext().getSharedPreferences("AzureStorageExplorerApplication", MODE_PRIVATE);
+            prefs.edit().clear().commit();
+            //clear SQLite
+            AzureStorageExplorerApplication.getCustomSQLiteHelper().clearAllData();
+            //clear the adapters
+            storageAccountAdapter.clear();
+            blobContainersAdapter.clear();
+
+            progressDialogFragment.dismiss();
         }
     }
 

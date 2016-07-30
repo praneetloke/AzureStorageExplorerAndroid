@@ -1,13 +1,17 @@
 package com.pl.azurestorageexplorer.fragments;
 
+import android.Manifest;
 import android.app.DownloadManager;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.Handler;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.ListPopupWindow;
@@ -58,11 +62,17 @@ public class BlobListFragment extends Fragment
     private static final ArrayList<String> BLOB_ACTIONS = new ArrayList<>();
     private static final ArrayList<Integer> BLOB_ACTIONS_ICONS = new ArrayList<>();
     private static final int DELETE_REQUEST_CODE = 1;
+    private static final int READ_WRITE_EXTERNAL_STORAGE_FOR_BLOB_DOWNLOAD_PERMISSION_REQUEST_CODE = 1;
+    private static final int READ_WRITE_EXTERNAL_STORAGE_FOR_BLOB_OPEN_PERMISSION_REQUEST_CODE = 2;
     private BlobRecyclerViewAdapter recyclerViewAdapter;
-    private CloudBlobDirectorySerializable mCurrentBlobDirectory;
-    private int mCurrentlySelectedBlobItemAdapterPosition;
-    private ListPopupWindow mListPopupWindow;
-    private ProgressBar mProgressBar;
+    private CloudBlobDirectorySerializable currentBlobDirectory;
+    private int currentlySelectedBlobItemAdapterPosition;
+    private ListPopupWindow listPopupWindow;
+    private ProgressBar progressBar;
+    private Thread blobDownloadThread;
+    private Thread blobOpenThread;
+
+    private Handler handler = new Handler();
 
     public BlobListFragment() {
         if (BLOB_ACTIONS.size() == 0) {
@@ -93,19 +103,32 @@ public class BlobListFragment extends Fragment
         recyclerViewAdapter = new BlobRecyclerViewAdapter(null, this);
         recyclerView.setAdapter(recyclerViewAdapter);
 
-        mProgressBar = (ProgressBar) root.findViewById(R.id.blobListProgressBar);
+        progressBar = (ProgressBar) root.findViewById(R.id.blobListProgressBar);
 
         return root;
     }
 
-    @Override
-    public void selectionChanged(AzureStorageAccount account, CloudBlobContainerSerializable container) {
+    private void showProgressBar() {
         getActivity().runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                mProgressBar.setVisibility(View.VISIBLE);
+                progressBar.setVisibility(View.VISIBLE);
             }
         });
+    }
+
+    private void hideProgressBar() {
+        getActivity().runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                progressBar.setVisibility(View.GONE);
+            }
+        });
+    }
+
+    @Override
+    public void selectionChanged(AzureStorageAccount account, CloudBlobContainerSerializable container) {
+        showProgressBar();
         //get the blobs for this container
         BlobListAsyncTask blobListAsyncTask = new BlobListAsyncTask(this);
         blobListAsyncTask.execute(account.getName(), account.getKey(), container.getName());
@@ -113,12 +136,7 @@ public class BlobListFragment extends Fragment
 
     @Override
     public void finished(ArrayList<ListBlobItem> result) {
-        getActivity().runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                mProgressBar.setVisibility(View.GONE);
-            }
-        });
+        hideProgressBar();
         recyclerViewAdapter.replaceDataset(result);
     }
 
@@ -127,7 +145,7 @@ public class BlobListFragment extends Fragment
         getActivity().runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                mProgressBar.setVisibility(View.GONE);
+                progressBar.setVisibility(View.GONE);
             }
         });
     }
@@ -135,16 +153,16 @@ public class BlobListFragment extends Fragment
     @Override
     public void onResume() {
         super.onResume();
-        if (mCurrentBlobDirectory != null) {
-            ((AppCompatActivity) getActivity()).getSupportActionBar().setTitle(mCurrentBlobDirectory.getPrefix());
+        if (currentBlobDirectory != null) {
+            ((AppCompatActivity) getActivity()).getSupportActionBar().setTitle(currentBlobDirectory.getPrefix());
         }
     }
 
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
-        if (mCurrentBlobDirectory != null) {
-            ((AppCompatActivity) getActivity()).getSupportActionBar().setTitle(mCurrentBlobDirectory.getPrefix());
+        if (currentBlobDirectory != null) {
+            ((AppCompatActivity) getActivity()).getSupportActionBar().setTitle(currentBlobDirectory.getPrefix());
         }
     }
 
@@ -152,7 +170,7 @@ public class BlobListFragment extends Fragment
     public void onClick(View view, int adapterPosition, ListBlobItem item) {
         //if the info icon was clicked, show the info dialog
         if (view.getId() == R.id.layout2) {
-            mCurrentlySelectedBlobItemAdapterPosition = adapterPosition;
+            currentlySelectedBlobItemAdapterPosition = adapterPosition;
             showPopup(view);
             return;
         }
@@ -164,27 +182,27 @@ public class BlobListFragment extends Fragment
     }
 
     private void showPopup(View view) {
-        if (mListPopupWindow == null) {
-            mListPopupWindow = new ListPopupWindow(getContext());
-            mListPopupWindow.setModal(false);
-            mListPopupWindow.setOnItemClickListener(this);
-            mListPopupWindow.setWidth(350);
-            mListPopupWindow.setAdapter(new BlobActionsPopupWindowArrayAdapter(getContext(), android.R.layout.simple_list_item_1, BLOB_ACTIONS, BLOB_ACTIONS_ICONS));
-            mListPopupWindow.setDropDownGravity(Gravity.START);
+        if (listPopupWindow == null) {
+            listPopupWindow = new ListPopupWindow(getContext());
+            listPopupWindow.setModal(false);
+            listPopupWindow.setOnItemClickListener(this);
+            listPopupWindow.setWidth(350);
+            listPopupWindow.setAdapter(new BlobActionsPopupWindowArrayAdapter(getContext(), android.R.layout.simple_list_item_1, BLOB_ACTIONS, BLOB_ACTIONS_ICONS));
+            listPopupWindow.setDropDownGravity(Gravity.START);
         }
 
-        mListPopupWindow.setAnchorView(view);
-        mListPopupWindow.show();
+        listPopupWindow.setAnchorView(view);
+        listPopupWindow.show();
     }
 
     @Override
     public void onBlobItemClick(AzureStorageAccount account, ListBlobItem listBlobItem) {
         try {
             CloudBlobDirectory cloudBlobDirectory = (CloudBlobDirectory) listBlobItem;
-            mCurrentBlobDirectory = new CloudBlobDirectorySerializable(cloudBlobDirectory.getContainer().getName(), cloudBlobDirectory.getPrefix());
+            currentBlobDirectory = new CloudBlobDirectorySerializable(cloudBlobDirectory.getContainer().getName(), cloudBlobDirectory.getPrefix());
             //get the blobs for this blob directory
             BlobListAsyncTask blobListAsyncTask = new BlobListAsyncTask(this);
-            blobListAsyncTask.execute(account.getName(), account.getKey(), mCurrentBlobDirectory.getContainerName(), mCurrentBlobDirectory.getPrefix());
+            blobListAsyncTask.execute(account.getName(), account.getKey(), currentBlobDirectory.getContainerName(), currentBlobDirectory.getPrefix());
         } catch (StorageException e) {
             e.printStackTrace();
         } catch (URISyntaxException e) {
@@ -218,7 +236,7 @@ public class BlobListFragment extends Fragment
     }
 
     private void deletionConfirmed() {
-        final CloudBlob cloudBlob = (CloudBlob) recyclerViewAdapter.getDataset().get(mCurrentlySelectedBlobItemAdapterPosition);
+        final CloudBlob cloudBlob = (CloudBlob) recyclerViewAdapter.getDataset().get(currentlySelectedBlobItemAdapterPosition);
         new Thread(new Runnable() {
             @Override
             public void run() {
@@ -248,8 +266,8 @@ public class BlobListFragment extends Fragment
 
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-        mListPopupWindow.dismiss();
-        final CloudBlob cloudBlob = (CloudBlob) recyclerViewAdapter.getDataset().get(mCurrentlySelectedBlobItemAdapterPosition);
+        listPopupWindow.dismiss();
+        final CloudBlob cloudBlob = (CloudBlob) recyclerViewAdapter.getDataset().get(currentlySelectedBlobItemAdapterPosition);
 
         switch ((int) view.getTag()) {
             case R.drawable.ic_info_outline:
@@ -269,9 +287,17 @@ public class BlobListFragment extends Fragment
             case R.drawable.ic_download:
                 //download the blob
                 final Context context = getContext();
-                new Thread(new Runnable() {
+                blobDownloadThread = new Thread(new Runnable() {
                     @Override
                     public void run() {
+                        //show the progress bar
+                        handler.post(new Runnable() {
+                            @Override
+                            public void run() {
+                                showProgressBar();
+                            }
+                        });
+
                         try {
                             final String path = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).getPath();
                             File file = new File(path);
@@ -284,7 +310,13 @@ public class BlobListFragment extends Fragment
                                 blobFile.createNewFile();
                             }
                             cloudBlob.downloadToFile(blobFile.getAbsolutePath());
-
+                            //hide the progress bar
+                            handler.post(new Runnable() {
+                                @Override
+                                public void run() {
+                                    hideProgressBar();
+                                }
+                            });
                             DownloadManager downloadManager = (DownloadManager) context.getSystemService(Context.DOWNLOAD_SERVICE);
                             downloadManager.addCompletedDownload(
                                     fileName,
@@ -298,12 +330,24 @@ public class BlobListFragment extends Fragment
                             showToast(e.getMessage());
                         }
                     }
-                }).start();
+                });
+
+                //if we don't already have permissions, request it and start the thread after the permissions are granted for external storage
+                if (checkForStoragePermissions(READ_WRITE_EXTERNAL_STORAGE_FOR_BLOB_DOWNLOAD_PERMISSION_REQUEST_CODE)) {
+                    blobDownloadThread.start();
+                }
                 break;
             case R.drawable.ic_view:
-                new Thread(new Runnable() {
+                blobOpenThread = new Thread(new Runnable() {
                     @Override
                     public void run() {
+                        //show the progress bar
+                        handler.post(new Runnable() {
+                            @Override
+                            public void run() {
+                                showProgressBar();
+                            }
+                        });
                         try {
                             final String path = getContext().getExternalCacheDir().getAbsolutePath();
                             File file = new File(path);
@@ -316,7 +360,13 @@ public class BlobListFragment extends Fragment
                                 blobFile.createNewFile();
                             }
                             cloudBlob.downloadToFile(blobFile.getAbsolutePath());
-
+                            //hide the progress bar
+                            handler.post(new Runnable() {
+                                @Override
+                                public void run() {
+                                    hideProgressBar();
+                                }
+                            });
                             String extension = android.webkit.MimeTypeMap.getFileExtensionFromUrl(Uri.fromFile(blobFile).toString());
                             String mimeType = android.webkit.MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension);
 
@@ -331,10 +381,56 @@ public class BlobListFragment extends Fragment
                             showToast(e.getMessage());
                         }
                     }
-                }).start();
+                });
+
+                //if we don't already have permissions, request it and start the thread after the permissions are granted for external storage
+                if (checkForStoragePermissions(READ_WRITE_EXTERNAL_STORAGE_FOR_BLOB_OPEN_PERMISSION_REQUEST_CODE)) {
+                    blobOpenThread.start();
+                }
                 break;
             default:
                 break;
+        }
+    }
+
+    private boolean checkForStoragePermissions(int requestCode) {
+        if (ContextCompat.checkSelfPermission(getActivity(),
+                Manifest.permission.READ_EXTERNAL_STORAGE)
+                != PackageManager.PERMISSION_GRANTED || ContextCompat.checkSelfPermission(getActivity(),
+                Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                != PackageManager.PERMISSION_GRANTED) {
+            requestPermissions(new String[]{Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE},
+                    requestCode);
+            return false;
+        }
+
+        return true;
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
+        switch (requestCode) {
+            case READ_WRITE_EXTERNAL_STORAGE_FOR_BLOB_DOWNLOAD_PERMISSION_REQUEST_CODE: {
+                // If request is cancelled, the result arrays are empty.
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED && grantResults[1] == PackageManager.PERMISSION_GRANTED) {
+                    if (blobDownloadThread != null) {
+                        blobDownloadThread.start();
+                    }
+                } else {
+
+                }
+                return;
+            }
+            case READ_WRITE_EXTERNAL_STORAGE_FOR_BLOB_OPEN_PERMISSION_REQUEST_CODE: {
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED && grantResults[1] == PackageManager.PERMISSION_GRANTED) {
+                    if (blobOpenThread != null) {
+                        blobOpenThread.start();
+                    }
+                } else {
+
+                }
+                return;
+            }
         }
     }
 
