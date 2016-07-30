@@ -38,16 +38,17 @@ public class CustomSQLiteHelper extends SQLiteOpenHelper {
 
     public ArrayList<AzureStorageAccount> getAzureAccounts() {
         Cursor cursor = getReadableDatabase().rawQuery(
-                String.format("select id, %s, %s, %s from %s;",
+                String.format("select id, %s, %s, %s, %s from %s;",
                         AzureStorageAccountSQLiteHelper.NAME,
                         AzureStorageAccountSQLiteHelper.KEY,
                         AzureStorageAccountSQLiteHelper.SUBSCRIPTION_ID,
+                        AzureStorageAccountSQLiteHelper.RESOURCE_GROUP_NAME,
                         AzureStorageAccountSQLiteHelper.TABLE_NAME),
                 new String[]{});
 
         ArrayList<AzureStorageAccount> accounts = new ArrayList<>();
         while (cursor.moveToNext()) {
-            accounts.add(new AzureStorageAccount(cursor.getInt(0), cursor.getString(1), cursor.getString(2), cursor.getString(3)));
+            accounts.add(new AzureStorageAccount(cursor.getInt(0), cursor.getString(1), cursor.getString(2), cursor.getString(3), cursor.getString(4)));
         }
 
         cursor.close();
@@ -60,10 +61,11 @@ public class CustomSQLiteHelper extends SQLiteOpenHelper {
         }
 
         Cursor cursor = getReadableDatabase().rawQuery(
-                String.format("SELECT id, %s, %s, %s FROM %s WHERE %s in (%s);",
+                String.format("SELECT id, %s, %s, %s, %s FROM %s WHERE %s in (%s);",
                         AzureStorageAccountSQLiteHelper.NAME,
                         AzureStorageAccountSQLiteHelper.KEY,
                         AzureStorageAccountSQLiteHelper.SUBSCRIPTION_ID,
+                        AzureStorageAccountSQLiteHelper.RESOURCE_GROUP_NAME,
                         AzureStorageAccountSQLiteHelper.TABLE_NAME,
                         AzureStorageAccountSQLiteHelper.SUBSCRIPTION_ID,
                         subscriptionIds.toString()),
@@ -71,7 +73,7 @@ public class CustomSQLiteHelper extends SQLiteOpenHelper {
 
         ArrayList<AzureStorageAccount> accounts = new ArrayList<>();
         while (cursor.moveToNext()) {
-            accounts.add(new AzureStorageAccount(cursor.getInt(0), cursor.getString(1), cursor.getString(2), cursor.getString(3)));
+            accounts.add(new AzureStorageAccount(cursor.getInt(0), cursor.getString(1), cursor.getString(2), cursor.getString(3), cursor.getString(4)));
         }
 
         cursor.close();
@@ -80,10 +82,11 @@ public class CustomSQLiteHelper extends SQLiteOpenHelper {
 
     public ArrayList<AzureStorageAccount> getFilteredAzureAccounts() {
         Cursor cursor = getReadableDatabase().rawQuery(
-                String.format("SELECT a.id, a.%s, a.%s, a.%s FROM %s a JOIN %s b ON b.%s = a.%s WHERE b.%s = 1;",
+                String.format("SELECT a.id, a.%s, a.%s, a.%s, a.%s FROM %s a JOIN %s b ON b.%s = a.%s WHERE b.%s = 1;",
                         AzureStorageAccountSQLiteHelper.NAME,
                         AzureStorageAccountSQLiteHelper.KEY,
                         AzureStorageAccountSQLiteHelper.SUBSCRIPTION_ID,
+                        AzureStorageAccountSQLiteHelper.RESOURCE_GROUP_NAME,
                         AzureStorageAccountSQLiteHelper.TABLE_NAME,
                         AzureSubscriptionsFilterSQLiteHelper.TABLE_NAME,
                         AzureSubscriptionsFilterSQLiteHelper.SUBSCRIPTION_ID,
@@ -93,7 +96,7 @@ public class CustomSQLiteHelper extends SQLiteOpenHelper {
 
         ArrayList<AzureStorageAccount> accounts = new ArrayList<>();
         while (cursor.moveToNext()) {
-            accounts.add(new AzureStorageAccount(cursor.getInt(0), cursor.getString(1), cursor.getString(2), cursor.getString(3)));
+            accounts.add(new AzureStorageAccount(cursor.getInt(0), cursor.getString(1), cursor.getString(2), cursor.getString(3), cursor.getString(4)));
         }
 
         cursor.close();

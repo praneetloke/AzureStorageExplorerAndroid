@@ -65,7 +65,7 @@ public class AddAccountDialogFragment extends DialogFragment {
                                 .getWritableDatabase()
                                 .insert(AzureStorageAccountSQLiteHelper.TABLE_NAME, null, contentValues);
 
-                        onAccountSaved(new AzureStorageAccount(insertedId, name, storageKey.getText().toString(), ""));
+                        onAccountSaved(new AzureStorageAccount(insertedId, name, storageKey.getText().toString(), "", ""));
                         dialog.dismiss();
                     }
                 })

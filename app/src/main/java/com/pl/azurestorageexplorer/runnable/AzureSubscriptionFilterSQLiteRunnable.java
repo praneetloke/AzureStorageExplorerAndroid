@@ -6,7 +6,7 @@ import android.database.sqlite.SQLiteDatabaseLockedException;
 import android.util.Log;
 
 import com.pl.azurestorageexplorer.AzureStorageExplorerApplication;
-import com.pl.azurestorageexplorer.models.Subscription;
+import com.pl.azurestorageexplorer.models.ARMSubscription;
 import com.pl.azurestorageexplorer.storage.AzureSubscriptionsFilterSQLiteHelper;
 
 import java.util.List;
@@ -16,9 +16,9 @@ import java.util.List;
  */
 public class AzureSubscriptionFilterSQLiteRunnable implements Runnable {
     private static final String TAG = AzureSubscriptionFilterSQLiteRunnable.class.getName();
-    private List<Subscription> mSubscriptions;
+    private List<ARMSubscription> mSubscriptions;
 
-    public AzureSubscriptionFilterSQLiteRunnable(List<Subscription> subscriptions) {
+    public AzureSubscriptionFilterSQLiteRunnable(List<ARMSubscription> subscriptions) {
         mSubscriptions = subscriptions;
     }
 
@@ -40,10 +40,10 @@ public class AzureSubscriptionFilterSQLiteRunnable implements Runnable {
             }
         }
 
-        for (Subscription subscription : mSubscriptions) {
+        for (ARMSubscription subscription : mSubscriptions) {
             ContentValues contentValues = new ContentValues();
-            contentValues.put(AzureSubscriptionsFilterSQLiteHelper.NAME, subscription.getSubscriptionName());
-            contentValues.put(AzureSubscriptionsFilterSQLiteHelper.SUBSCRIPTION_ID, subscription.getSubscriptionID());
+            contentValues.put(AzureSubscriptionsFilterSQLiteHelper.NAME, subscription.getDisplayName());
+            contentValues.put(AzureSubscriptionsFilterSQLiteHelper.SUBSCRIPTION_ID, subscription.getSubscriptionId());
             contentValues.put(AzureSubscriptionsFilterSQLiteHelper.IS_SELECTED, 1);
 
             db.insert(AzureSubscriptionsFilterSQLiteHelper.TABLE_NAME, null, contentValues);

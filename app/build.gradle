@@ -39,4 +39,5 @@ dependencies {
     compile 'com.google.http-client:google-http-client-jackson:1.22.0'
     compile 'com.wu-man:android-oauth-client:0.4.5@aar'
     compile 'com.squareup.okhttp3:okhttp:3.4.0-RC1'
+    compile 'com.google.code.gson:gson:2.7'
 }

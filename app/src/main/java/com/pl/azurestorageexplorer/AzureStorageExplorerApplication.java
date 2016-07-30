@@ -4,6 +4,9 @@ import android.app.Application;
 
 import com.pl.azurestorageexplorer.storage.CustomSQLiteHelper;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import okhttp3.OkHttpClient;
 
 /**
@@ -12,8 +15,8 @@ import okhttp3.OkHttpClient;
 public class AzureStorageExplorerApplication extends Application {
 
     public static final String DATABASE_NAME = "AzureStorageExplorer.db";
+    public static final Map<String, String> accessToken = new HashMap<>();
     public static OkHttpClient mOkHttpClient = new OkHttpClient();
-    public static String accessToken = "";
     private static CustomSQLiteHelper customSQLiteHelper;
 
     public static CustomSQLiteHelper getCustomSQLiteHelper() {
