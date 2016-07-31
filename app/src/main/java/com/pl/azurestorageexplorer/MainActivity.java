@@ -17,6 +17,7 @@ import android.util.Xml;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.webkit.CookieManager;
 import android.widget.AdapterView;
 import android.widget.LinearLayout;
 import android.widget.Spinner;
@@ -403,6 +404,8 @@ public class MainActivity extends AppCompatActivity
 
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
+        //disable menu icon tinting
+        navigationView.setItemIconTintList(null);
         //setup the spinner in the drawer layout header
         navMenuHeaderSpinner = (ReSelectableSpinner) navigationView.getHeaderView(0).findViewById(R.id.navBarHeaderSpinner);
         navMenuHeaderSpinner.setAdapter(storageAccountAdapter);
@@ -598,6 +601,7 @@ public class MainActivity extends AppCompatActivity
         ((IBlobItemNavigateListener) blobListFragment).onBlobItemClick(account, blobItem);
     }
 
+    @SuppressWarnings("deprecation")
     @Override
     public void onConfirmationDialogPositiveClick(int requestCode) {
         if (requestCode == SIGN_OUT_REQUEST_CODE) {
@@ -613,6 +617,9 @@ public class MainActivity extends AppCompatActivity
             //clear the adapters
             storageAccountAdapter.clear();
             blobContainersAdapter.clear();
+
+            CookieManager cookieManager = CookieManager.getInstance();
+            cookieManager.removeAllCookie();
 
             progressDialogFragment.dismiss();
         }
