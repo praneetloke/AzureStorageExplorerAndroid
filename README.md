@@ -4,16 +4,15 @@ Azure Storage explorer for the Android platform
 # Current status
 Pre-alpha
 
-# Roadmap
-- ~~Show storage accounts in the menu drawer's header layout with a spinner~~
-- ~~Use the current spinner nav in the toolbar to show list of containers instead~~
-- ~~Change the first level of recycler view to show the blobs in the selected container~~
-- Upload blobs
-- ~~View blobs~~
-- Edit blob metadata like Cache-Control, Content-Type etc.
-- ~~Connect to your Azure subscription(?)~~
+# Current features
+- Show classic/ARM storage accounts for subscriptions
+- Show blob containers under each storage account
+- Blob (virtual) directory navigation
+- View/download/delete blobs
 
 # Future roadmap
+- Edit blob metadata like Cache-Control, Content-Type etc.
+- Upload blobs
 - Tables(?)
 - Queues(?)
 
