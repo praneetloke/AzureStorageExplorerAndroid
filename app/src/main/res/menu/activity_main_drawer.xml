@@ -3,13 +3,18 @@
 
     <group android:checkableBehavior="single">
         <item
-            android:id="@+id/blobs"
+            android:id="@+id/blobsMenuItem"
             android:checked="true"
             android:icon="@drawable/ic_blobs"
             android:title="@string/blobs" />
 
         <item
-            android:id="@+id/signOut"
+            android:id="@+id/tablesMenuItem"
+            android:icon="@drawable/ic_tables"
+            android:title="@string/tables" />
+
+        <item
+            android:id="@+id/signOutMenuItem"
             android:checkable="false"
             android:icon="@drawable/ic_cloud_off"
             android:title="@string/sign_out" />

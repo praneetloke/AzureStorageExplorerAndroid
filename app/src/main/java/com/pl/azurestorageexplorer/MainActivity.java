@@ -30,15 +30,20 @@ import com.google.api.client.http.GenericUrl;
 import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.gson.Gson;
 import com.microsoft.azure.storage.blob.ListBlobItem;
+import com.microsoft.azure.storage.table.EntityProperty;
 import com.pl.azurestorageexplorer.adapter.BlobContainersAdapter;
 import com.pl.azurestorageexplorer.adapter.StorageAccountAdapter;
+import com.pl.azurestorageexplorer.adapter.StorageTablesAdapter;
 import com.pl.azurestorageexplorer.asynctask.BlobContainerListAsyncTask;
+import com.pl.azurestorageexplorer.asynctask.StorageTablesAsyncTask;
 import com.pl.azurestorageexplorer.asynctask.interfaces.IAsyncTaskCallback;
+import com.pl.azurestorageexplorer.enums.StorageServiceType;
 import com.pl.azurestorageexplorer.fragments.AddAccountDialogFragment;
 import com.pl.azurestorageexplorer.fragments.BlobListFragment;
 import com.pl.azurestorageexplorer.fragments.ConfirmationDialogFragment;
 import com.pl.azurestorageexplorer.fragments.ProgressDialogFragment;
 import com.pl.azurestorageexplorer.fragments.SubscriptionsFilterDialogFragment;
+import com.pl.azurestorageexplorer.fragments.TableEntitiesFragment;
 import com.pl.azurestorageexplorer.fragments.interfaces.IBlobItemNavigateListener;
 import com.pl.azurestorageexplorer.fragments.interfaces.IDialogFragmentClickListener;
 import com.pl.azurestorageexplorer.fragments.interfaces.ISpinnerNavListener;
@@ -49,6 +54,7 @@ import com.pl.azurestorageexplorer.models.ARMSubscription;
 import com.pl.azurestorageexplorer.models.ARMSubscriptions;
 import com.pl.azurestorageexplorer.models.CloudBlobContainerSerializable;
 import com.pl.azurestorageexplorer.models.StorageService;
+import com.pl.azurestorageexplorer.models.StorageTableSerializable;
 import com.pl.azurestorageexplorer.parser.XmlToPojo;
 import com.pl.azurestorageexplorer.restclient.LegacyStorageKeyRestClient;
 import com.pl.azurestorageexplorer.restclient.StorageKeyRestClient;
@@ -68,6 +74,7 @@ import com.wuman.android.auth.oauth2.store.SharedPreferencesCredentialStore;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Stack;
 import java.util.concurrent.CancellationException;
@@ -81,8 +88,9 @@ public class MainActivity extends AppCompatActivity
         implements
         NavigationView.OnNavigationItemSelectedListener,
         AddAccountDialogFragment.OnFragmentInteractionListener,
-        IAsyncTaskCallback<ArrayList<CloudBlobContainerSerializable>>,
+        IAsyncTaskCallback<ArrayList<?>>,
         BlobListFragment.OnFragmentInteractionListener,
+        TableEntitiesFragment.OnFragmentInteractionListener,
         IDialogFragmentClickListener,
         ISubscriptionSelectionChangeListener {
 
@@ -91,6 +99,7 @@ public class MainActivity extends AppCompatActivity
     private final Gson gson = new Gson();
     private StorageAccountAdapter storageAccountAdapter;
     private BlobContainersAdapter blobContainersAdapter;
+    private StorageTablesAdapter storageTablesAdapter;
     private ReSelectableSpinner navMenuHeaderSpinner;
     private Spinner toolbarSpinner;
     private Stack<Fragment> fragmentStack;
@@ -98,6 +107,9 @@ public class MainActivity extends AppCompatActivity
     private Handler handler = new Handler();
     private SharedPreferencesCredentialStore credentialStore;
     private ProgressDialogFragment progressDialogFragment = new ProgressDialogFragment();
+
+    //the default selected menu item in the navigation drawer is Blobs
+    private StorageServiceType storageServiceType = StorageServiceType.BLOB;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -135,14 +147,25 @@ public class MainActivity extends AppCompatActivity
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 Snackbar.make(findViewById(R.id.coordinatorLayout), view.getTag().toString(), Snackbar.LENGTH_SHORT).show();
+                String fragmentTag = null;
+                Object item = null;
+                //figure out which fragment we need to tell about the toolbar spinner change
+                if (storageServiceType == StorageServiceType.BLOB) {
+                    fragmentTag = BlobListFragment.class.getName();
+                    item = blobContainersAdapter.getItem(position);
+                } else if (storageServiceType == StorageServiceType.TABLE) {
+                    fragmentTag = TableEntitiesFragment.class.getName();
+                    item = storageTablesAdapter.getItem(position);
+                }
+
                 final AzureStorageAccount account = storageAccountAdapter.getItem(navMenuHeaderSpinner.getSelectedItemPosition());
-                final CloudBlobContainerSerializable container = blobContainersAdapter.getItem(position);
-                final Fragment fragment = MainActivity.this.getSupportFragmentManager().findFragmentByTag(BlobListFragment.class.getName());
+                final Fragment fragment = MainActivity.this.getSupportFragmentManager().findFragmentByTag(fragmentTag);
                 if (fragment != null) {
+                    final Object itemFinal = item;
                     new Thread(new Runnable() {
                         @Override
                         public void run() {
-                            ((ISpinnerNavListener<CloudBlobContainerSerializable>) fragment).selectionChanged(account, container);
+                            ((ISpinnerNavListener) fragment).selectionChanged(account, itemFinal);
                         }
                     }).start();
                 }
@@ -402,7 +425,7 @@ public class MainActivity extends AppCompatActivity
         ArrayList<AzureStorageAccount> accounts = AzureStorageExplorerApplication.getCustomSQLiteHelper().getFilteredAzureAccounts();
         storageAccountAdapter = new StorageAccountAdapter(getApplicationContext(), accounts);
 
-        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
+        final NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
         //disable menu icon tinting
         navigationView.setItemIconTintList(null);
@@ -427,6 +450,8 @@ public class MainActivity extends AppCompatActivity
                 }
 
                 final AzureStorageAccount account = storageAccountAdapter.getItem(position);
+                final StorageServiceType storageServiceTypeFinal = storageServiceType;
+
                 if (account.getKey() == null) {
                     //fetch the key for this account first
                     ARMStorageServices storageServices = new ARMStorageServices();
@@ -434,12 +459,17 @@ public class MainActivity extends AppCompatActivity
                     if (account.getSubscriptionId() != null) {
                         new Thread(new StorageKeyRestClient(storageServices, account.getSubscriptionId(), new IAsyncTaskCallback<AzureStorageAccount>() {
                             @Override
-                            public void finished(final AzureStorageAccount storageAccount) {
+                            public void finished(final AzureStorageAccount refreshedStorageAccount) {
                                 //update the storage account in the SQLite DB with the key
-                                AzureStorageExplorerApplication.getCustomSQLiteHelper().updateStorageAccount(storageAccount);
+                                AzureStorageExplorerApplication.getCustomSQLiteHelper().updateStorageAccount(refreshedStorageAccount);
                                 //now get the containers for this storage account
-                                BlobContainerListAsyncTask containerListAsyncTask = new BlobContainerListAsyncTask(MainActivity.this);
-                                containerListAsyncTask.execute(storageAccount.getName(), storageAccount.getKey());
+                                if (storageServiceTypeFinal == StorageServiceType.BLOB) {
+                                    BlobContainerListAsyncTask containerListAsyncTask = new BlobContainerListAsyncTask(MainActivity.this);
+                                    containerListAsyncTask.execute(refreshedStorageAccount.getName(), refreshedStorageAccount.getKey());
+                                } else if (storageServiceTypeFinal == StorageServiceType.TABLE) {
+                                    StorageTablesAsyncTask storageTablesAsyncTask = new StorageTablesAsyncTask(MainActivity.this);
+                                    storageTablesAsyncTask.execute(refreshedStorageAccount.getName(), refreshedStorageAccount.getKey());
+                                }
                             }
 
                             @Override
@@ -452,8 +482,13 @@ public class MainActivity extends AppCompatActivity
                     new Thread(new Runnable() {
                         @Override
                         public void run() {
-                            BlobContainerListAsyncTask containerListAsyncTask = new BlobContainerListAsyncTask(MainActivity.this);
-                            containerListAsyncTask.execute(account.getName(), account.getKey());
+                            if (storageServiceTypeFinal == StorageServiceType.BLOB) {
+                                BlobContainerListAsyncTask containerListAsyncTask = new BlobContainerListAsyncTask(MainActivity.this);
+                                containerListAsyncTask.execute(account.getName(), account.getKey());
+                            } else if (storageServiceTypeFinal == StorageServiceType.TABLE) {
+                                StorageTablesAsyncTask storageTablesAsyncTask = new StorageTablesAsyncTask(MainActivity.this);
+                                storageTablesAsyncTask.execute(account.getName(), account.getKey());
+                            }
                         }
                     }).start();
                 }
@@ -550,7 +585,7 @@ public class MainActivity extends AppCompatActivity
             }
         }, 200);
 
-        if (id == R.id.signOut) {
+        if (id == R.id.signOutMenuItem) {
             //delete the currently selected account
             Bundle args = new Bundle();
             args.putString("title", getString(R.string.sign_out_dialog_title));
@@ -559,6 +594,24 @@ public class MainActivity extends AppCompatActivity
             ConfirmationDialogFragment signOutDialogFragment = new ConfirmationDialogFragment();
             signOutDialogFragment.setArguments(args);
             signOutDialogFragment.show(getSupportFragmentManager(), ConfirmationDialogFragment.class.getName());
+        } else if (id == R.id.tablesMenuItem) {
+            storageServiceType = StorageServiceType.TABLE;
+            //user may have navigated into a virtual directory, so reset the stack
+            resetBlobListFragmentStack();
+            //remove the blob list fragment and add the tables fragment
+            final String fragmentTag = TableEntitiesFragment.class.getName();
+            final Fragment tableEntitiesFragment = TableEntitiesFragment.instantiate(getApplicationContext(), fragmentTag);
+            ActivityUtils.replaceFragment(getSupportFragmentManager(), R.id.contentFrame, tableEntitiesFragment, fragmentTag, fragmentStack);
+            //re-trigger a storage account selection
+            navMenuHeaderSpinner.setSelection(navMenuHeaderSpinner.getSelectedItemPosition());
+        } else if (id == R.id.blobsMenuItem) {
+            storageServiceType = StorageServiceType.BLOB;
+            //remove the blob list fragment and add the tables fragment
+            final String fragmentTag = BlobListFragment.class.getName();
+            final Fragment blobListFragment = BlobListFragment.instantiate(getApplicationContext(), fragmentTag);
+            ActivityUtils.replaceFragment(getSupportFragmentManager(), R.id.contentFrame, blobListFragment, fragmentTag, fragmentStack);
+            //re-trigger a storage account selection
+            navMenuHeaderSpinner.setSelection(navMenuHeaderSpinner.getSelectedItemPosition());
         }
 
         return true;
@@ -578,10 +631,17 @@ public class MainActivity extends AppCompatActivity
     }
 
     @Override
-    public void finished(ArrayList<CloudBlobContainerSerializable> result) {
-        //received a list of blob containers..load them into the toolbar's spinner
-        blobContainersAdapter = new BlobContainersAdapter(getApplicationContext(), result);
-        toolbarSpinner.setAdapter(blobContainersAdapter);
+    public void finished(ArrayList<?> result) {
+        if (result.get(0) instanceof CloudBlobContainerSerializable) {
+            //received a list of blob containers..load them into the toolbar's spinner
+            blobContainersAdapter = new BlobContainersAdapter(getApplicationContext(), (ArrayList<CloudBlobContainerSerializable>) result);
+            toolbarSpinner.setAdapter(blobContainersAdapter);
+        } else if (result.get(0) instanceof StorageTableSerializable) {
+            //received a list of blob containers..load them into the toolbar's spinner
+            storageTablesAdapter = new StorageTablesAdapter(getApplicationContext(), (ArrayList<StorageTableSerializable>) result);
+            toolbarSpinner.setAdapter(storageTablesAdapter);
+        }
+
         toolbarSpinner.dispatchSetSelected(true);
     }
 
@@ -635,5 +695,10 @@ public class MainActivity extends AppCompatActivity
         ArrayList<AzureStorageAccount> accounts = AzureStorageExplorerApplication.getCustomSQLiteHelper().getFilteredAzureAccounts();
         storageAccountAdapter.replaceDataset(accounts);
         navMenuHeaderSpinner.setSelection(0);
+    }
+
+    @Override
+    public void onTableEntityClicked(HashMap<String, EntityProperty> tableEntity) {
+        //TODO: does the activity want to handle this?
     }
 }

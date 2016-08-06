@@ -18,7 +18,7 @@ public class BlobContainerListAsyncTask extends AsyncTask<String, Void, ArrayLis
     private IAsyncTaskCallback callback;
     private String exceptionMessage;
 
-    public BlobContainerListAsyncTask(IAsyncTaskCallback<ArrayList<CloudBlobContainerSerializable>> callback) {
+    public BlobContainerListAsyncTask(IAsyncTaskCallback<ArrayList<?>> callback) {
         this.callback = callback;
     }
 

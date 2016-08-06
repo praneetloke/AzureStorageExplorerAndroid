@@ -4,6 +4,7 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 
+import java.util.List;
 import java.util.Stack;
 
 /**
@@ -33,5 +34,25 @@ public class ActivityUtils {
         fragmentStack.lastElement().onResume();
         ft.show(fragmentStack.lastElement());
         ft.commit();
+    }
+
+    public static void replaceFragment(FragmentManager fragmentManager, int frameId, Fragment fragmentToShow, String fragmentTag, Stack<Fragment> fragmentStack) {
+        List<Fragment> fragmentList = fragmentManager.getFragments();
+        for (Fragment fragment : fragmentList) {
+            fragmentManager.beginTransaction()
+                    .remove(fragment)
+                    .commit();
+
+            if (!fragmentStack.empty()) {
+                fragmentStack.pop();
+            }
+        }
+
+        fragmentManager
+                .beginTransaction()
+                .add(frameId, fragmentToShow, fragmentTag)
+                .commit();
+
+        fragmentStack.push(fragmentToShow);
     }
 }
