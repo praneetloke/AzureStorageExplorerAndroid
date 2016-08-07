@@ -41,8 +41,3 @@ dependencies {
     compile 'com.squareup.okhttp3:okhttp:3.4.0-RC1'
     compile 'com.google.code.gson:gson:2.7'
 }
-
-def getProguardFilesCollection() {
-    FileCollection proGuardFileCollection = files { file('proguard/').listFiles() }
-    return proGuardFileCollection;
-}
