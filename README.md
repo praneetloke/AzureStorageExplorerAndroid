@@ -1,3 +1,4 @@
+[![Stories in Ready](https://badge.waffle.io/praneetloke/AzureStorageExplorerAndroid.png?label=ready&title=Ready)](https://waffle.io/praneetloke/AzureStorageExplorerAndroid)
 # AzureStorageExplorerAndroid
 Azure Storage explorer for the Android platform
 
