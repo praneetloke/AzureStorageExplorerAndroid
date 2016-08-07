@@ -9,17 +9,18 @@ import com.pl.azurestorageexplorer.asynctask.interfaces.IAsyncTaskCallback;
 import com.pl.azurestorageexplorer.models.CloudBlobContainerSerializable;
 import com.pl.azurestorageexplorer.util.Constants;
 
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 
 /**
  * Created by Praneet Loke on 4/16/2016.
  */
 public class BlobContainerListAsyncTask extends AsyncTask<String, Void, ArrayList<CloudBlobContainerSerializable>> {
-    private IAsyncTaskCallback callback;
+    private WeakReference<IAsyncTaskCallback> callback;
     private String exceptionMessage;
 
     public BlobContainerListAsyncTask(IAsyncTaskCallback<ArrayList<?>> callback) {
-        this.callback = callback;
+        this.callback = new WeakReference<IAsyncTaskCallback>(callback);
     }
 
     @Override
@@ -45,11 +46,15 @@ public class BlobContainerListAsyncTask extends AsyncTask<String, Void, ArrayLis
     }
 
     protected void onPostExecute(ArrayList<CloudBlobContainerSerializable> containers) {
-        if (exceptionMessage != null) {
-            this.callback.failed(exceptionMessage);
+        if (this.callback.get() == null) {
             return;
         }
 
-        this.callback.finished(containers);
+        if (exceptionMessage != null) {
+            this.callback.get().failed(exceptionMessage);
+            return;
+        }
+
+        this.callback.get().finished(containers);
     }
 }

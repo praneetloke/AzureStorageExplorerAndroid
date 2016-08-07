@@ -5,41 +5,40 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import com.microsoft.azure.storage.table.EntityProperty;
+import com.microsoft.azure.storage.table.DynamicTableEntity;
 import com.pl.azurestorageexplorer.R;
 import com.pl.azurestorageexplorer.adapter.interfaces.IRecyclerViewAdapterClickListener;
 import com.pl.azurestorageexplorer.adapter.interfaces.IViewHolderClickListener;
-import com.pl.azurestorageexplorer.adapter.viewholder.TableEntityViewHolder;
+import com.pl.azurestorageexplorer.adapter.viewholder.TableEntitiesListItemViewHolder;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 
 /**
  * Created by Praneet Loke on 4/16/2016.
  */
-public class TableEntitiesRecyclerViewAdapter extends LinearRecyclerViewAdapter<HashMap<String, EntityProperty>, TableEntityViewHolder> implements IViewHolderClickListener {
+public class TableEntitiesRecyclerViewAdapter extends LinearRecyclerViewAdapter<DynamicTableEntity, TableEntitiesListItemViewHolder> implements IViewHolderClickListener {
 
-    private IRecyclerViewAdapterClickListener<HashMap<String, EntityProperty>> recyclerViewAdapterClickListener;
+    private IRecyclerViewAdapterClickListener<DynamicTableEntity> recyclerViewAdapterClickListener;
 
-    public TableEntitiesRecyclerViewAdapter(ArrayList<HashMap<String, EntityProperty>> dataset, IRecyclerViewAdapterClickListener adapterClickListener) {
+    public TableEntitiesRecyclerViewAdapter(ArrayList<DynamicTableEntity> dataset, IRecyclerViewAdapterClickListener adapterClickListener) {
         super(dataset);
         this.recyclerViewAdapterClickListener = adapterClickListener;
     }
 
     @Override
-    public TableEntityViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+    public TableEntitiesListItemViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         // create a new view
-        View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.table_entity_layout, parent, false);
+        View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.table_entities_list_item_layout, parent, false);
         //TODO: set the view's size, margins, paddings and layout parameters
-        TableEntityViewHolder vh = new TableEntityViewHolder(v, this);
+        TableEntitiesListItemViewHolder vh = new TableEntitiesListItemViewHolder(v, this);
         return vh;
     }
 
     @Override
-    public void onBindViewHolder(TableEntityViewHolder holder, int position) {
-        HashMap<String, EntityProperty> tableEntity = getDataset().get(position);
-        holder.partitionKey.setText(tableEntity.get("PartitionKey").getValueAsString());
-        holder.rowKey.setText(tableEntity.get("RowKey").getValueAsString());
+    public void onBindViewHolder(TableEntitiesListItemViewHolder holder, int position) {
+        DynamicTableEntity tableEntity = getDataset().get(position);
+        holder.partitionKey.setText(tableEntity.getPartitionKey());
+        holder.rowKey.setText(tableEntity.getRowKey());
     }
 
     @Override

@@ -9,17 +9,18 @@ import com.microsoft.azure.storage.blob.ListBlobItem;
 import com.pl.azurestorageexplorer.asynctask.interfaces.IAsyncTaskCallback;
 import com.pl.azurestorageexplorer.util.Constants;
 
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 
 /**
  * Created by Praneet Loke on 4/18/2016.
  */
 public class BlobListAsyncTask extends AsyncTask<String, Void, ArrayList<ListBlobItem>> {
-    private IAsyncTaskCallback callback;
+    private WeakReference<IAsyncTaskCallback> callback;
     private String exceptionMessage;
 
     public BlobListAsyncTask(IAsyncTaskCallback<ArrayList<ListBlobItem>> callback) {
-        this.callback = callback;
+        this.callback = new WeakReference<IAsyncTaskCallback>(callback);
     }
 
     @Override
@@ -59,11 +60,15 @@ public class BlobListAsyncTask extends AsyncTask<String, Void, ArrayList<ListBlo
     }
 
     protected void onPostExecute(ArrayList<ListBlobItem> blobs) {
-        if (exceptionMessage != null) {
-            this.callback.failed(exceptionMessage);
+        if (this.callback.get() == null) {
             return;
         }
 
-        this.callback.finished(blobs);
+        if (exceptionMessage != null) {
+            this.callback.get().failed(exceptionMessage);
+            return;
+        }
+
+        this.callback.get().finished(blobs);
     }
 }

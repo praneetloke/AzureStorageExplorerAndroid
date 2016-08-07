@@ -37,8 +37,15 @@ public class ActivityUtils {
     }
 
     public static void replaceFragment(FragmentManager fragmentManager, int frameId, Fragment fragmentToShow, String fragmentTag, Stack<Fragment> fragmentStack) {
+        if (fragmentToShow == null) {
+            return;
+        }
+
         List<Fragment> fragmentList = fragmentManager.getFragments();
         for (Fragment fragment : fragmentList) {
+            if (fragment == null) {
+                continue;
+            }
             fragmentManager.beginTransaction()
                     .remove(fragment)
                     .commit();

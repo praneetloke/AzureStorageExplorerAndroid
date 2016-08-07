@@ -7,13 +7,14 @@ import com.microsoft.azure.storage.ResultContinuation;
 import com.microsoft.azure.storage.ResultSegment;
 import com.microsoft.azure.storage.table.CloudTable;
 import com.microsoft.azure.storage.table.CloudTableClient;
+import com.microsoft.azure.storage.table.DynamicTableEntity;
 import com.microsoft.azure.storage.table.EntityProperty;
 import com.microsoft.azure.storage.table.EntityResolver;
-import com.microsoft.azure.storage.table.TableEntity;
 import com.microsoft.azure.storage.table.TableQuery;
 import com.pl.azurestorageexplorer.asynctask.interfaces.IAsyncTaskCallbackWithResultContinuation;
 import com.pl.azurestorageexplorer.util.Constants;
 
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -21,21 +22,21 @@ import java.util.HashMap;
 /**
  * Created by Praneet Loke on 4/18/2016.
  */
-public class TableEntitiesAsyncTask extends AsyncTask<String, Void, ArrayList<HashMap<String, EntityProperty>>> {
-    private IAsyncTaskCallbackWithResultContinuation callback;
+public class TableEntitiesAsyncTask extends AsyncTask<String, Void, ArrayList<DynamicTableEntity>> {
+    private WeakReference<IAsyncTaskCallbackWithResultContinuation> callback;
     private String exceptionMessage;
     private ResultContinuation resultContinuation;
     private boolean hasMoreResults;
 
-    public TableEntitiesAsyncTask(IAsyncTaskCallbackWithResultContinuation<ArrayList<HashMap<String, EntityProperty>>> callback, ResultContinuation resultContinuation) {
-        this.callback = callback;
+    public TableEntitiesAsyncTask(IAsyncTaskCallbackWithResultContinuation<ArrayList<DynamicTableEntity>> callback, ResultContinuation resultContinuation) {
+        this.callback = new WeakReference<IAsyncTaskCallbackWithResultContinuation>(callback);
         this.resultContinuation = resultContinuation;
     }
 
     @Override
-    protected ArrayList<HashMap<String, EntityProperty>> doInBackground(String... params) {
+    protected ArrayList<DynamicTableEntity> doInBackground(String... params) {
         String storageUrl = String.format(Constants.STORAGE_ACCOUNT_BLOB_URL_FORMAT, params[0], params[1]);
-        ArrayList<HashMap<String, EntityProperty>> tableEntities = null;
+        ArrayList<DynamicTableEntity> tableEntities = null;
 
         try {
             // Retrieve storage account from connection-string.
@@ -46,15 +47,15 @@ public class TableEntitiesAsyncTask extends AsyncTask<String, Void, ArrayList<Ha
             tableEntities = new ArrayList<>();
 
             // Define a Entity resolver to project the entity to the Email value.
-            EntityResolver<HashMap<String, EntityProperty>> entityResolver = new EntityResolver<HashMap<String, EntityProperty>>() {
+            EntityResolver<DynamicTableEntity> entityResolver = new EntityResolver<DynamicTableEntity>() {
                 @Override
-                public HashMap<String, EntityProperty> resolve(String PartitionKey, String RowKey, Date timeStamp, HashMap<String, EntityProperty> properties, String etag) {
-                    properties.put("PartitionKey", new EntityProperty(PartitionKey));
-                    properties.put("RowKey", new EntityProperty(RowKey));
-                    return properties;
+                public DynamicTableEntity resolve(String PartitionKey, String RowKey, Date timeStamp, HashMap<String, EntityProperty> properties, String etag) {
+                    return new DynamicTableEntity(PartitionKey, RowKey);
                 }
             };
-            ResultSegment<HashMap<String, EntityProperty>> tableEntityResultSegment = cloudTable.executeSegmented(new TableQuery<TableEntity>(), entityResolver, resultContinuation);
+            TableQuery<DynamicTableEntity> tableQuery = new TableQuery<>();
+            tableQuery.select(new String[]{"PartitionKey", "RowKey"});
+            ResultSegment<DynamicTableEntity> tableEntityResultSegment = cloudTable.executeSegmented(tableQuery, entityResolver, resultContinuation);
             tableEntities = tableEntityResultSegment.getResults();
             resultContinuation = tableEntityResultSegment.getContinuationToken();
             hasMoreResults = tableEntityResultSegment.getHasMoreResults();
@@ -64,12 +65,16 @@ public class TableEntitiesAsyncTask extends AsyncTask<String, Void, ArrayList<Ha
         return tableEntities;
     }
 
-    protected void onPostExecute(ArrayList<HashMap<String, EntityProperty>> tableEntities) {
-        if (exceptionMessage != null) {
-            this.callback.failed(exceptionMessage);
+    protected void onPostExecute(ArrayList<DynamicTableEntity> tableEntities) {
+        if (this.callback.get() == null) {
             return;
         }
 
-        this.callback.finished(tableEntities, resultContinuation, hasMoreResults);
+        if (exceptionMessage != null) {
+            this.callback.get().failed(exceptionMessage);
+            return;
+        }
+
+        this.callback.get().finished(tableEntities, resultContinuation, hasMoreResults);
     }
 }

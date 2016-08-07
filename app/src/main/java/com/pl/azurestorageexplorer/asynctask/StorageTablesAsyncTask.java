@@ -8,17 +8,18 @@ import com.pl.azurestorageexplorer.asynctask.interfaces.IAsyncTaskCallback;
 import com.pl.azurestorageexplorer.models.StorageTableSerializable;
 import com.pl.azurestorageexplorer.util.Constants;
 
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 
 /**
  * Created by Praneet Loke on 4/16/2016.
  */
 public class StorageTablesAsyncTask extends AsyncTask<String, Void, ArrayList<StorageTableSerializable>> {
-    private IAsyncTaskCallback callback;
+    private WeakReference<IAsyncTaskCallback> callback;
     private String exceptionMessage;
 
     public StorageTablesAsyncTask(IAsyncTaskCallback<ArrayList<?>> callback) {
-        this.callback = callback;
+        this.callback = new WeakReference<IAsyncTaskCallback>(callback);
     }
 
     @Override
@@ -44,11 +45,15 @@ public class StorageTablesAsyncTask extends AsyncTask<String, Void, ArrayList<St
     }
 
     protected void onPostExecute(ArrayList<StorageTableSerializable> tables) {
-        if (exceptionMessage != null) {
-            this.callback.failed(exceptionMessage);
+        if (this.callback.get() == null) {
             return;
         }
 
-        this.callback.finished(tables);
+        if (exceptionMessage != null) {
+            this.callback.get().failed(exceptionMessage);
+            return;
+        }
+
+        this.callback.get().finished(tables);
     }
 }

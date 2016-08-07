@@ -30,7 +30,7 @@ import com.google.api.client.http.GenericUrl;
 import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.gson.Gson;
 import com.microsoft.azure.storage.blob.ListBlobItem;
-import com.microsoft.azure.storage.table.EntityProperty;
+import com.microsoft.azure.storage.table.DynamicTableEntity;
 import com.pl.azurestorageexplorer.adapter.BlobContainersAdapter;
 import com.pl.azurestorageexplorer.adapter.StorageAccountAdapter;
 import com.pl.azurestorageexplorer.adapter.StorageTablesAdapter;
@@ -74,7 +74,6 @@ import com.wuman.android.auth.oauth2.store.SharedPreferencesCredentialStore;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Stack;
 import java.util.concurrent.CancellationException;
@@ -698,7 +697,7 @@ public class MainActivity extends AppCompatActivity
     }
 
     @Override
-    public void onTableEntityClicked(HashMap<String, EntityProperty> tableEntity) {
+    public void onTableEntityClicked(DynamicTableEntity tableEntity) {
         //TODO: does the activity want to handle this?
     }
 }

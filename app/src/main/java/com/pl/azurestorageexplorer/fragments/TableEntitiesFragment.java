@@ -18,7 +18,7 @@ import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import com.microsoft.azure.storage.ResultContinuation;
-import com.microsoft.azure.storage.table.EntityProperty;
+import com.microsoft.azure.storage.table.DynamicTableEntity;
 import com.pl.azurestorageexplorer.R;
 import com.pl.azurestorageexplorer.adapter.BlobActionsPopupWindowArrayAdapter;
 import com.pl.azurestorageexplorer.adapter.TableEntitiesRecyclerViewAdapter;
@@ -32,7 +32,6 @@ import com.pl.azurestorageexplorer.storage.models.AzureStorageAccount;
 
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.HashMap;
 
 /**
  * Created by Praneet Loke on 4/16/2016.
@@ -40,10 +39,10 @@ import java.util.HashMap;
 public class TableEntitiesFragment extends Fragment
         implements
         ISpinnerNavListener<StorageTableSerializable>,
-        IRecyclerViewAdapterClickListener<HashMap<String, EntityProperty>>,
+        IRecyclerViewAdapterClickListener<DynamicTableEntity>,
         AdapterView.OnItemClickListener,
         IDialogFragmentClickListener,
-        IAsyncTaskCallbackWithResultContinuation<ArrayList<HashMap<String, EntityProperty>>> {
+        IAsyncTaskCallbackWithResultContinuation<ArrayList<DynamicTableEntity>> {
 
     private static final ArrayList<String> TABLE_ENTITY_ACTIONS = new ArrayList<>();
     private static final ArrayList<Integer> TABLE_ENTITY_ACTIONS_ICONS = new ArrayList<>();
@@ -55,7 +54,8 @@ public class TableEntitiesFragment extends Fragment
     private boolean hasMoreResults;
     private String currentTableName;
     private ListPopupWindow listPopupWindow;
-    private int currentlySelectedBlobItemAdapterPosition;
+    private AzureStorageAccount azureStorageAccount;
+    private int currentlySelectedTableEntityItemAdapterPosition;
 
     public TableEntitiesFragment() {
         if (TABLE_ENTITY_ACTIONS.size() == 0) {
@@ -81,7 +81,7 @@ public class TableEntitiesFragment extends Fragment
         recyclerView.setHasFixedSize(true);
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getActivity());
         recyclerView.setLayoutManager(linearLayoutManager);
-        recyclerViewAdapter = new TableEntitiesRecyclerViewAdapter(new ArrayList<HashMap<String, EntityProperty>>(), this);
+        recyclerViewAdapter = new TableEntitiesRecyclerViewAdapter(new ArrayList<DynamicTableEntity>(), this);
         recyclerView.setAdapter(recyclerViewAdapter);
 
         progressBar = (ProgressBar) root.findViewById(R.id.tableEntitiesProgressBar);
@@ -114,12 +114,13 @@ public class TableEntitiesFragment extends Fragment
         resultContinuation = null;
         hasMoreResults = false;
         currentTableName = table.getName();
+        azureStorageAccount = account;
         TableEntitiesAsyncTask tableEntitiesAsyncTask = new TableEntitiesAsyncTask(this, resultContinuation);
         tableEntitiesAsyncTask.execute(account.getName(), account.getKey(), table.getName());
     }
 
     @Override
-    public void finished(ArrayList<HashMap<String, EntityProperty>> result, ResultContinuation resultContinuation, boolean hasMoreResults) {
+    public void finished(ArrayList<DynamicTableEntity> result, ResultContinuation resultContinuation, boolean hasMoreResults) {
         hideProgressBar();
         this.hasMoreResults = hasMoreResults;
         this.resultContinuation = resultContinuation;
@@ -154,12 +155,12 @@ public class TableEntitiesFragment extends Fragment
     }
 
     @Override
-    public void onClick(View view, int adapterPosition, HashMap<String, EntityProperty> item) {
+    public void onClick(View view, int adapterPosition, DynamicTableEntity item) {
         //TODO: show an info dialog that shows the full entity
         if (view.getId() == R.id.layout1) {
 
         } else if (view.getId() == R.id.layout2) {
-            currentlySelectedBlobItemAdapterPosition = adapterPosition;
+            currentlySelectedTableEntityItemAdapterPosition = adapterPosition;
             showPopup(view);
         }
 
@@ -200,11 +201,9 @@ public class TableEntitiesFragment extends Fragment
 
     @Override
     public void onConfirmationDialogPositiveClick(int requestCode) {
-
-    }
-
-    private void deletionConfirmed() {
-
+        if (requestCode == DELETE_REQUEST_CODE) {
+            //TODO: delete the entity
+        }
     }
 
     @Override
@@ -220,7 +219,7 @@ public class TableEntitiesFragment extends Fragment
             case R.drawable.ic_info_outline:
                 //TODO: show info dialog
                 break;
-            case R.drawable.ic_delete_forever:
+            case R.drawable.ic_delete_forever: {
                 Bundle args = new Bundle();
                 args.putString("title", getString(R.string.delete_table_entity_title));
                 args.putString("message", getString(R.string.delete_table_entity_confirmation_message));
@@ -228,9 +227,21 @@ public class TableEntitiesFragment extends Fragment
                 deleteConfirmation.setArguments(args);
                 deleteConfirmation.setTargetFragment(this, DELETE_REQUEST_CODE);
                 deleteConfirmation.show(getActivity().getSupportFragmentManager(), ConfirmationDialogFragment.class.getName());
+            }
+
                 break;
-            case R.drawable.ic_view:
-                //TODO: show the full entity in a dialog fragment
+            case R.drawable.ic_view: {
+                //show the full entity in a dialog fragment
+                Bundle args = new Bundle();
+                args.putString("storageAccount", azureStorageAccount.getName());
+                args.putString("storageAccountKey", azureStorageAccount.getKey());
+                args.putString("tableName", currentTableName);
+                args.putString("partitionKey", recyclerViewAdapter.getDataset().get(position).getPartitionKey());
+                args.putString("rowKey", recyclerViewAdapter.getDataset().get(position).getRowKey());
+                TableEntityInfoDialogFragment tableEntityInfoDialogFragment = new TableEntityInfoDialogFragment();
+                tableEntityInfoDialogFragment.setArguments(args);
+                tableEntityInfoDialogFragment.show(getActivity().getSupportFragmentManager(), TableEntityInfoDialogFragment.class.getName());
+            }
                 break;
             default:
                 break;
@@ -248,6 +259,6 @@ public class TableEntitiesFragment extends Fragment
      * >Communicating with Other Fragments</a> for more information.
      */
     public interface OnFragmentInteractionListener extends Serializable {
-        void onTableEntityClicked(HashMap<String, EntityProperty> tableEntity);
+        void onTableEntityClicked(DynamicTableEntity tableEntity);
     }
 }
