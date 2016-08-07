@@ -168,7 +168,7 @@ public class BlobListFragment extends Fragment
 
     @Override
     public void onClick(View view, int adapterPosition, ListBlobItem item) {
-        //if the info icon was clicked, show the info dialog
+        //if the menu overflow icon was clicked, show the popup
         if (view.getId() == R.id.layout2) {
             currentlySelectedBlobItemAdapterPosition = adapterPosition;
             showPopup(view);

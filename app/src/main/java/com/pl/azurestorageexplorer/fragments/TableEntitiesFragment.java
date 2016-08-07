@@ -115,6 +115,8 @@ public class TableEntitiesFragment extends Fragment
         hasMoreResults = false;
         currentTableName = table.getName();
         azureStorageAccount = account;
+        //reset the list
+        recyclerViewAdapter.getDataset().clear();
         TableEntitiesAsyncTask tableEntitiesAsyncTask = new TableEntitiesAsyncTask(this, resultContinuation);
         tableEntitiesAsyncTask.execute(account.getName(), account.getKey(), table.getName());
     }
@@ -218,6 +220,7 @@ public class TableEntitiesFragment extends Fragment
         switch ((int) view.getTag()) {
             case R.drawable.ic_info_outline:
                 //TODO: show info dialog
+                Toast.makeText(getContext(), "Coming soon!", Toast.LENGTH_SHORT).show();
                 break;
             case R.drawable.ic_delete_forever: {
                 Bundle args = new Bundle();
@@ -236,8 +239,8 @@ public class TableEntitiesFragment extends Fragment
                 args.putString("storageAccount", azureStorageAccount.getName());
                 args.putString("storageAccountKey", azureStorageAccount.getKey());
                 args.putString("tableName", currentTableName);
-                args.putString("partitionKey", recyclerViewAdapter.getDataset().get(position).getPartitionKey());
-                args.putString("rowKey", recyclerViewAdapter.getDataset().get(position).getRowKey());
+                args.putString("partitionKey", recyclerViewAdapter.getDataset().get(currentlySelectedTableEntityItemAdapterPosition).getPartitionKey());
+                args.putString("rowKey", recyclerViewAdapter.getDataset().get(currentlySelectedTableEntityItemAdapterPosition).getRowKey());
                 TableEntityInfoDialogFragment tableEntityInfoDialogFragment = new TableEntityInfoDialogFragment();
                 tableEntityInfoDialogFragment.setArguments(args);
                 tableEntityInfoDialogFragment.show(getActivity().getSupportFragmentManager(), TableEntityInfoDialogFragment.class.getName());
