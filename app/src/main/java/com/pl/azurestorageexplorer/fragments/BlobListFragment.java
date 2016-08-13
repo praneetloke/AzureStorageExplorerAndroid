@@ -9,6 +9,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
+import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
@@ -71,6 +72,7 @@ public class BlobListFragment extends Fragment
     private ProgressBar progressBar;
     private Thread blobDownloadThread;
     private Thread blobOpenThread;
+    private String currentBlobContainerName;
 
     private Handler handler = new Handler();
 
@@ -105,6 +107,17 @@ public class BlobListFragment extends Fragment
 
         progressBar = (ProgressBar) root.findViewById(R.id.blobListProgressBar);
 
+        FloatingActionButton fab = (FloatingActionButton) root.findViewById(R.id.add_blob);
+        if (fab != null) {
+            fab.setImageResource(R.drawable.ic_add);
+            fab.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    Toast.makeText(getContext(), "Coming soon!", Toast.LENGTH_SHORT).show();
+                }
+            });
+        }
+
         return root;
     }
 
@@ -128,6 +141,9 @@ public class BlobListFragment extends Fragment
 
     @Override
     public void selectionChanged(AzureStorageAccount account, CloudBlobContainerSerializable container) {
+        currentBlobContainerName = container.getName();
+        Snackbar.make(getView().findViewById(R.id.blobListCoordinatorLayout), currentBlobContainerName, Snackbar.LENGTH_SHORT).show();
+
         showProgressBar();
         //get the blobs for this container
         BlobListAsyncTask blobListAsyncTask = new BlobListAsyncTask(this);

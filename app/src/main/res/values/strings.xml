@@ -26,4 +26,7 @@
     <string name="delete_table_entity_title">Delete Entity</string>
     <string name="delete_table_entity_confirmation_message">Are you really sure you want to delete this entity? This cannot be undone.</string>
     <string name="rowkey">RowKey</string>
+    <string name="action_add_table">Add Table</string>
+    <string name="action_add_blob_container">Add Container</string>
+    <string name="container_name">Container name</string>
 </resources>

@@ -3,9 +3,7 @@ package com.pl.azurestorageexplorer;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
-import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
-import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
@@ -39,6 +37,7 @@ import com.pl.azurestorageexplorer.asynctask.StorageTablesAsyncTask;
 import com.pl.azurestorageexplorer.asynctask.interfaces.IAsyncTaskCallback;
 import com.pl.azurestorageexplorer.enums.StorageServiceType;
 import com.pl.azurestorageexplorer.fragments.AddAccountDialogFragment;
+import com.pl.azurestorageexplorer.fragments.AddBlobContainerFragment;
 import com.pl.azurestorageexplorer.fragments.BlobListFragment;
 import com.pl.azurestorageexplorer.fragments.ConfirmationDialogFragment;
 import com.pl.azurestorageexplorer.fragments.ProgressDialogFragment;
@@ -91,7 +90,8 @@ public class MainActivity extends AppCompatActivity
         BlobListFragment.OnFragmentInteractionListener,
         TableEntitiesFragment.OnFragmentInteractionListener,
         IDialogFragmentClickListener,
-        ISubscriptionSelectionChangeListener {
+        ISubscriptionSelectionChangeListener,
+        AddBlobContainerFragment.OnFragmentInteractionListener {
 
     private static final int SIGN_OUT_REQUEST_CODE = 1;
     private static final String TAG = MainActivity.class.getName();
@@ -121,17 +121,6 @@ public class MainActivity extends AppCompatActivity
 
         fragmentStack = new Stack<>();
 
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.add_account);
-        if (fab != null) {
-            fab.setImageResource(R.drawable.ic_add);
-            fab.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    new AddAccountDialogFragment().show(getSupportFragmentManager(), "AddAccountDialog");
-                }
-            });
-        }
-
         drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
                 this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
@@ -145,7 +134,6 @@ public class MainActivity extends AppCompatActivity
         toolbarSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                Snackbar.make(findViewById(R.id.coordinatorLayout), view.getTag().toString(), Snackbar.LENGTH_SHORT).show();
                 String fragmentTag = null;
                 Object item = null;
                 //figure out which fragment we need to tell about the toolbar spinner change
@@ -559,15 +547,30 @@ public class MainActivity extends AppCompatActivity
             toolbarSpinner.setVisibility(View.GONE);
         }
 
+        if (storageServiceType == StorageServiceType.BLOB) {
+            getMenuInflater().inflate(R.menu.blobs_toolbar_menu, menu);
+        } else if (storageServiceType == StorageServiceType.TABLE) {
+            getMenuInflater().inflate(R.menu.tables_toolbar_menu, menu);
+        }
+
         return true;
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
+
+        if (id == R.id.action_add_blob_container) {
+            final AzureStorageAccount account = storageAccountAdapter.getItem(navMenuHeaderSpinner.getSelectedItemPosition());
+            AddBlobContainerFragment addBlobContainerFragment = new AddBlobContainerFragment();
+            Bundle args = new Bundle();
+            args.putString("storageAccount", account.getName());
+            args.putString("storageKey", account.getKey());
+            addBlobContainerFragment.setArguments(args);
+            addBlobContainerFragment.show(getSupportFragmentManager(), AddBlobContainerFragment.class.getName());
+        } else if (id == R.id.action_add_table) {
+            Toast.makeText(getApplicationContext(), "Coming soon!", Toast.LENGTH_SHORT).show();
+        }
 
         return super.onOptionsItemSelected(item);
     }
@@ -612,6 +615,9 @@ public class MainActivity extends AppCompatActivity
             //re-trigger a storage account selection
             navMenuHeaderSpinner.setSelection(navMenuHeaderSpinner.getSelectedItemPosition());
         }
+
+        //invalidate the options menu since the selection from the nav menu changed..we may have to rebuild the actions in the toolbar menu
+        invalidateOptionsMenu();
 
         return true;
     }
@@ -699,5 +705,11 @@ public class MainActivity extends AppCompatActivity
     @Override
     public void onTableEntityClicked(DynamicTableEntity tableEntity) {
         //TODO: does the activity want to handle this?
+    }
+
+    @Override
+    public void onBlobContainerCreated(String containerName) {
+        blobContainersAdapter.add(new CloudBlobContainerSerializable(containerName));
+        blobContainersAdapter.notifyDataSetChanged();
     }
 }
