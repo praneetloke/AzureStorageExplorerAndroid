@@ -46,11 +46,6 @@ public class AddBlobContainerFragment extends DialogFragment implements IAsyncTa
         blobContainerName.setOnKeyListener(new View.OnKeyListener() {
             @Override
             public boolean onKey(View v, int keyCode, KeyEvent event) {
-                if (blobContainerName.getText().toString().trim().equals("")) {
-                    blobContainerName.setError("Container name is required");
-                    return false;
-                }
-
                 if (keyCode == EditorInfo.IME_ACTION_GO) {
                     createBlobContainer();
                 }
@@ -65,11 +60,6 @@ public class AddBlobContainerFragment extends DialogFragment implements IAsyncTa
                 .setPositiveButton(getResources().getString(R.string.add), new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int id) {
-                        if (blobContainerName.getText().toString().trim().equals("")) {
-                            blobContainerName.setError("Container name is required");
-                            return;
-                        }
-
                         createBlobContainer();
                     }
                 })
@@ -82,15 +72,21 @@ public class AddBlobContainerFragment extends DialogFragment implements IAsyncTa
     }
 
     private void createBlobContainer() {
-        if (getArguments() == null || !getArguments().containsKey("storageAccount") || !getArguments().containsKey("storageKey")) {
+        final String containerName = blobContainerName.getText().toString().trim().replace(" ", "").toLowerCase();
+        if (containerName.equals("")) {
+            blobContainerName.setError("Container name is required");
+            return;
+        }
+
+        Bundle args = getArguments();
+        if (args == null || !args.containsKey("storageAccount") || !args.containsKey("storageKey")) {
             Toast.makeText(getContext(), "Storage credentials missing. :(", Toast.LENGTH_SHORT).show();
             return;
         }
+
         showProgressBar();
         blobContainerName.setEnabled(false);
-
         final BlobContainerCreateAsyncTask blobContainerCreateAsyncTask = new BlobContainerCreateAsyncTask(this);
-        String containerName = blobContainerName.getText().toString().trim().replace(" ", "").toLowerCase();
         blobContainerCreateAsyncTask.execute(getArguments().getString("storageAccount"), getArguments().getString("storageKey"), containerName);
     }
 

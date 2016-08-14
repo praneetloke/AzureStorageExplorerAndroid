@@ -1,6 +1,7 @@
 package com.pl.azurestorageexplorer.fragments;
 
 import android.Manifest;
+import android.app.Activity;
 import android.app.DownloadManager;
 import android.content.Context;
 import android.content.Intent;
@@ -62,9 +63,10 @@ public class BlobListFragment extends Fragment
 
     private static final ArrayList<String> BLOB_ACTIONS = new ArrayList<>();
     private static final ArrayList<Integer> BLOB_ACTIONS_ICONS = new ArrayList<>();
-    private static final int DELETE_REQUEST_CODE = 1;
-    private static final int READ_WRITE_EXTERNAL_STORAGE_FOR_BLOB_DOWNLOAD_PERMISSION_REQUEST_CODE = 1;
-    private static final int READ_WRITE_EXTERNAL_STORAGE_FOR_BLOB_OPEN_PERMISSION_REQUEST_CODE = 2;
+    private static final int DELETE_REQUEST_CODE = 21;
+    private static final int INTENT_OPEN_DOCUMENT_REQUEST_CODE = 45;
+    private static final int READ_WRITE_EXTERNAL_STORAGE_FOR_BLOB_DOWNLOAD_PERMISSION_REQUEST_CODE = 87;
+    private static final int READ_WRITE_EXTERNAL_STORAGE_FOR_BLOB_OPEN_PERMISSION_REQUEST_CODE = 99;
     private BlobRecyclerViewAdapter recyclerViewAdapter;
     private CloudBlobDirectorySerializable currentBlobDirectory;
     private int currentlySelectedBlobItemAdapterPosition;
@@ -113,7 +115,16 @@ public class BlobListFragment extends Fragment
             fab.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    Toast.makeText(getContext(), "Coming soon!", Toast.LENGTH_SHORT).show();
+                    // ACTION_OPEN_DOCUMENT is the intent to choose a file via the system's file
+                    // browser.
+                    Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+
+                    // Filter to only show results that can be "opened", such as a
+                    // file (as opposed to a list of contacts or timezones)
+                    intent.addCategory(Intent.CATEGORY_OPENABLE);
+                    intent.setType("*/*");
+
+                    startActivityForResult(intent, INTENT_OPEN_DOCUMENT_REQUEST_CODE);
                 }
             });
         }
@@ -446,6 +457,17 @@ public class BlobListFragment extends Fragment
 
                 }
                 return;
+            }
+        }
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent resultData) {
+        if (requestCode == INTENT_OPEN_DOCUMENT_REQUEST_CODE && resultCode == Activity.RESULT_OK) {
+            Uri uri = null;
+            if (resultData != null) {
+                uri = resultData.getData();
+
             }
         }
     }
