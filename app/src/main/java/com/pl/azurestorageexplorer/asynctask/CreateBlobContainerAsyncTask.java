@@ -11,11 +11,11 @@ import java.lang.ref.WeakReference;
 /**
  * Created by Praneet Loke on 4/16/2016.
  */
-public class BlobContainerCreateAsyncTask extends AsyncTask<String, Void, String> {
+public class CreateBlobContainerAsyncTask extends AsyncTask<String, Void, String> {
     private WeakReference<IAsyncTaskCallback<String>> callback;
     private String exceptionMessage;
 
-    public BlobContainerCreateAsyncTask(IAsyncTaskCallback<String> callback) {
+    public CreateBlobContainerAsyncTask(IAsyncTaskCallback<String> callback) {
         this.callback = new WeakReference<>(callback);
     }
 

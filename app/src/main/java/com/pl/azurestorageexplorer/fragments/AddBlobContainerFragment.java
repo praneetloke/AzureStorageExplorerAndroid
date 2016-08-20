@@ -16,7 +16,7 @@ import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import com.pl.azurestorageexplorer.R;
-import com.pl.azurestorageexplorer.asynctask.BlobContainerCreateAsyncTask;
+import com.pl.azurestorageexplorer.asynctask.CreateBlobContainerAsyncTask;
 import com.pl.azurestorageexplorer.asynctask.interfaces.IAsyncTaskCallback;
 
 /**
@@ -86,8 +86,8 @@ public class AddBlobContainerFragment extends DialogFragment implements IAsyncTa
 
         showProgressBar();
         blobContainerName.setEnabled(false);
-        final BlobContainerCreateAsyncTask blobContainerCreateAsyncTask = new BlobContainerCreateAsyncTask(this);
-        blobContainerCreateAsyncTask.execute(getArguments().getString("storageAccount"), getArguments().getString("storageKey"), containerName);
+        final CreateBlobContainerAsyncTask createBlobContainerAsyncTask = new CreateBlobContainerAsyncTask(this);
+        createBlobContainerAsyncTask.execute(getArguments().getString("storageAccount"), getArguments().getString("storageKey"), containerName);
     }
 
     private void showProgressBar() {

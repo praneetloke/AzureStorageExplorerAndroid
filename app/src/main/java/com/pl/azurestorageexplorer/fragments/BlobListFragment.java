@@ -3,13 +3,16 @@ package com.pl.azurestorageexplorer.fragments;
 import android.Manifest;
 import android.app.Activity;
 import android.app.DownloadManager;
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
+import android.provider.OpenableColumns;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
@@ -35,10 +38,12 @@ import com.pl.azurestorageexplorer.adapter.BlobActionsPopupWindowArrayAdapter;
 import com.pl.azurestorageexplorer.adapter.BlobRecyclerViewAdapter;
 import com.pl.azurestorageexplorer.adapter.interfaces.IRecyclerViewAdapterClickListener;
 import com.pl.azurestorageexplorer.asynctask.BlobListAsyncTask;
+import com.pl.azurestorageexplorer.asynctask.UploadBlobAsyncTask;
 import com.pl.azurestorageexplorer.asynctask.interfaces.IAsyncTaskCallback;
 import com.pl.azurestorageexplorer.fragments.interfaces.IBlobItemNavigateListener;
 import com.pl.azurestorageexplorer.fragments.interfaces.IDialogFragmentClickListener;
 import com.pl.azurestorageexplorer.fragments.interfaces.ISpinnerNavListener;
+import com.pl.azurestorageexplorer.models.BlobToUpload;
 import com.pl.azurestorageexplorer.models.CloudBlobContainerSerializable;
 import com.pl.azurestorageexplorer.models.CloudBlobDirectorySerializable;
 import com.pl.azurestorageexplorer.storage.models.AzureStorageAccount;
@@ -56,7 +61,7 @@ public class BlobListFragment extends Fragment
         implements
         ISpinnerNavListener<CloudBlobContainerSerializable>,
         IBlobItemNavigateListener,
-        IAsyncTaskCallback<ArrayList<ListBlobItem>>,
+        IAsyncTaskCallback,
         IRecyclerViewAdapterClickListener<ListBlobItem>,
         AdapterView.OnItemClickListener,
         IDialogFragmentClickListener {
@@ -75,6 +80,7 @@ public class BlobListFragment extends Fragment
     private Thread blobDownloadThread;
     private Thread blobOpenThread;
     private String currentBlobContainerName;
+    private AzureStorageAccount currentAzureStorageAccount;
 
     private Handler handler = new Handler();
 
@@ -153,6 +159,8 @@ public class BlobListFragment extends Fragment
     @Override
     public void selectionChanged(AzureStorageAccount account, CloudBlobContainerSerializable container) {
         currentBlobContainerName = container.getName();
+        currentAzureStorageAccount = account;
+
         Snackbar.make(getView().findViewById(R.id.blobListCoordinatorLayout), currentBlobContainerName, Snackbar.LENGTH_SHORT).show();
 
         showProgressBar();
@@ -162,9 +170,13 @@ public class BlobListFragment extends Fragment
     }
 
     @Override
-    public void finished(ArrayList<ListBlobItem> result) {
+    public void finished(Object result) {
         hideProgressBar();
-        recyclerViewAdapter.replaceDataset(result);
+        if (result instanceof ArrayList) {
+            recyclerViewAdapter.replaceDataset((ArrayList<ListBlobItem>) result);
+        } else if (result instanceof Boolean) {
+            showSnackbar("Blob created");
+        }
     }
 
     @Override
@@ -464,12 +476,68 @@ public class BlobListFragment extends Fragment
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent resultData) {
         if (requestCode == INTENT_OPEN_DOCUMENT_REQUEST_CODE && resultCode == Activity.RESULT_OK) {
-            Uri uri = null;
+            Uri uri;
             if (resultData != null) {
                 uri = resultData.getData();
-
+                BlobToUpload blobToUpload = getDocumentMetadata(uri);
+                if (blobToUpload.getContentLength() <= 0) {
+                    return;
+                }
+                showProgressBar();
+                final UploadBlobAsyncTask uploadBlobAsyncTask = new UploadBlobAsyncTask(this, blobToUpload);
+                String blobDirectory = null;
+                if (currentBlobDirectory != null) {
+                    blobDirectory = currentBlobDirectory.getPrefix();
+                }
+                uploadBlobAsyncTask.execute(currentAzureStorageAccount.getName(), currentAzureStorageAccount.getKey(), currentBlobContainerName, blobDirectory);
             }
         }
+    }
+
+    private BlobToUpload getDocumentMetadata(Uri uri) {
+        BlobToUpload blobToUpload = new BlobToUpload();
+        blobToUpload.setUri(uri);
+        Cursor cursor = getActivity().getContentResolver()
+                .query(uri, null, null, null, null, null);
+
+        try {
+            // moveToFirst() returns false if the cursor has 0 rows.  Very handy for
+            // "if there's anything to look at, look at it" conditionals.
+            if (cursor != null && cursor.moveToFirst()) {
+                int sizeIndex = cursor.getColumnIndex(OpenableColumns.SIZE);
+                // If the size is unknown, the value stored is null.  But since an
+                // int can't be null in Java, the behavior is implementation-specific,
+                // which is just a fancy term for "unpredictable".  So as
+                // a rule, check if it's null before assigning to an int.  This will
+                // happen often:  The storage API allows for remote files, whose
+                // size might not be locally known.
+                long size = 0;
+                if (!cursor.isNull(sizeIndex)) {
+                    // Technically the column stores an int, but cursor.getString()
+                    // will do the conversion automatically.
+                    size = Long.parseLong(cursor.getString(sizeIndex));
+                }
+
+                blobToUpload.setContentLength(size);
+                blobToUpload.setFileName(cursor.getString(
+                        cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME)));
+                blobToUpload.setMimeType(cursor.getString(
+                        cursor.getColumnIndex("mime_type")));
+            } else {
+                ContentResolver contentResolver = getActivity().getContentResolver();
+                String mimeType = contentResolver.getType(uri);
+                blobToUpload.setMimeType(mimeType);
+                File file = new File(uri.getPath());
+                blobToUpload.setContentLength(file.length());
+                blobToUpload.setFileName(file.getName());
+            }
+        } finally {
+            if (cursor != null) {
+                cursor.close();
+            }
+        }
+
+        return blobToUpload;
     }
 
     /**
