@@ -637,6 +637,10 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public void finished(ArrayList<?> result) {
+        if (result == null || result.size() == 0) {
+            return;
+        }
+
         if (result.get(0) instanceof CloudBlobContainerSerializable) {
             //received a list of blob containers..load them into the toolbar's spinner
             blobContainersAdapter = new BlobContainersAdapter(getApplicationContext(), (ArrayList<CloudBlobContainerSerializable>) result);
