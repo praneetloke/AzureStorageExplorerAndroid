@@ -30,7 +30,7 @@ public class UploadBlobAsyncTask extends AsyncTask<String, Void, Boolean> {
 
     @Override
     protected Boolean doInBackground(String... params) {
-        String storageUrl = String.format(Constants.STORAGE_ACCOUNT_BLOB_URL_FORMAT, params[0], params[1]);
+        String storageUrl = String.format(Constants.STORAGE_ACCOUNT_URL_FORMAT, params[0], params[1]);
         boolean uploaded = false;
 
         try {

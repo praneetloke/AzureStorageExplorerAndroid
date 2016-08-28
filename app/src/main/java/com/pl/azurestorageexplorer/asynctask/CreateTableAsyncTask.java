@@ -3,6 +3,7 @@ package com.pl.azurestorageexplorer.asynctask;
 import android.os.AsyncTask;
 
 import com.microsoft.azure.storage.CloudStorageAccount;
+import com.microsoft.azure.storage.table.CloudTable;
 import com.pl.azurestorageexplorer.asynctask.interfaces.IAsyncTaskCallback;
 import com.pl.azurestorageexplorer.util.Constants;
 
@@ -11,11 +12,11 @@ import java.lang.ref.WeakReference;
 /**
  * Created by Praneet Loke on 4/16/2016.
  */
-public class CreateBlobContainerAsyncTask extends AsyncTask<String, Void, String> {
+public class CreateTableAsyncTask extends AsyncTask<String, Void, String> {
     private WeakReference<IAsyncTaskCallback<String>> callback;
     private String exceptionMessage;
 
-    public CreateBlobContainerAsyncTask(IAsyncTaskCallback<String> callback) {
+    public CreateTableAsyncTask(IAsyncTaskCallback<String> callback) {
         this.callback = new WeakReference<>(callback);
     }
 
@@ -28,7 +29,8 @@ public class CreateBlobContainerAsyncTask extends AsyncTask<String, Void, String
             CloudStorageAccount storageAccount = CloudStorageAccount.parse(storageUrl);
 
             // Create the blob client.
-            created = storageAccount.createCloudBlobClient().getContainerReference(params[2]).createIfNotExists();
+            CloudTable cloudTable = storageAccount.createCloudTableClient().getTableReference(params[2]);
+            created = cloudTable.createIfNotExists();
         } catch (Exception e) {
             exceptionMessage = e.getMessage();
         }
@@ -36,16 +38,16 @@ public class CreateBlobContainerAsyncTask extends AsyncTask<String, Void, String
         return created ? params[2] : null;
     }
 
-    protected void onPostExecute(String containerName) {
+    protected void onPostExecute(String tableName) {
         if (this.callback.get() == null) {
             return;
         }
 
-        if (exceptionMessage != null || containerName == null) {
+        if (exceptionMessage != null || tableName == null) {
             this.callback.get().failed(exceptionMessage);
             return;
         }
 
-        this.callback.get().finished(containerName);
+        this.callback.get().finished(tableName);
     }
 }

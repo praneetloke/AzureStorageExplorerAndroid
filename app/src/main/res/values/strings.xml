@@ -29,4 +29,7 @@
     <string name="action_add_table">Add Table</string>
     <string name="action_add_blob_container">Add Container</string>
     <string name="container_name">Container name</string>
+    <string name="table_name">Table name</string>
+    <string name="create_table">Create table</string>
+    <string name="create_container">Create container</string>
 </resources>

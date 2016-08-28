@@ -35,7 +35,7 @@ public class TableEntitiesAsyncTask extends AsyncTask<String, Void, ArrayList<Dy
 
     @Override
     protected ArrayList<DynamicTableEntity> doInBackground(String... params) {
-        String storageUrl = String.format(Constants.STORAGE_ACCOUNT_BLOB_URL_FORMAT, params[0], params[1]);
+        String storageUrl = String.format(Constants.STORAGE_ACCOUNT_URL_FORMAT, params[0], params[1]);
         ArrayList<DynamicTableEntity> tableEntities = null;
 
         try {

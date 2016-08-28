@@ -16,22 +16,22 @@ import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import com.pl.azurestorageexplorer.R;
-import com.pl.azurestorageexplorer.asynctask.CreateBlobContainerAsyncTask;
+import com.pl.azurestorageexplorer.asynctask.CreateTableAsyncTask;
 import com.pl.azurestorageexplorer.asynctask.interfaces.IAsyncTaskCallback;
 
 /**
  * A simple {@link Fragment} subclass.
  * Activities that contain this fragment must implement the
- * {@link AddBlobContainerFragment.OnFragmentInteractionListener} interface
+ * {@link AddTableFragment.OnFragmentInteractionListener} interface
  * to handle interaction events.
  */
-public class AddBlobContainerFragment extends DialogFragment implements IAsyncTaskCallback<String> {
+public class AddTableFragment extends DialogFragment implements IAsyncTaskCallback<String> {
 
     private OnFragmentInteractionListener mListener;
-    private EditText blobContainerName;
+    private EditText tableName;
     private ProgressBar progressBar;
 
-    public AddBlobContainerFragment() {
+    public AddTableFragment() {
         // Required empty public constructor
     }
 
@@ -40,10 +40,10 @@ public class AddBlobContainerFragment extends DialogFragment implements IAsyncTa
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
         // Get the layout inflater
         LayoutInflater inflater = getActivity().getLayoutInflater();
-        View view = inflater.inflate(R.layout.add_blob_container_layout, null);
-        progressBar = (ProgressBar) view.findViewById(R.id.create_blob_container_progress_bar);
-        blobContainerName = (EditText) view.findViewById(R.id.blob_container_name_edit_text);
-        blobContainerName.setOnKeyListener(new View.OnKeyListener() {
+        View view = inflater.inflate(R.layout.add_table_layout, null);
+        progressBar = (ProgressBar) view.findViewById(R.id.create_table_progress_bar);
+        tableName = (EditText) view.findViewById(R.id.table_name_edit_text);
+        tableName.setOnKeyListener(new View.OnKeyListener() {
             @Override
             public boolean onKey(View v, int keyCode, KeyEvent event) {
                 if (keyCode == EditorInfo.IME_ACTION_GO) {
@@ -55,7 +55,7 @@ public class AddBlobContainerFragment extends DialogFragment implements IAsyncTa
         });
         // Inflate and set the layout for the dialog
         // Pass null as the parent view because its going in the dialog layout
-        builder.setTitle(getResources().getString(R.string.create_container))
+        builder.setTitle(getResources().getString(R.string.create_table))
                 .setView(view)
                 // Add action buttons
                 .setPositiveButton(getResources().getString(R.string.add), new DialogInterface.OnClickListener() {
@@ -73,9 +73,9 @@ public class AddBlobContainerFragment extends DialogFragment implements IAsyncTa
     }
 
     private void createBlobContainer() {
-        final String containerName = blobContainerName.getText().toString().trim().replace(" ", "").toLowerCase();
-        if (containerName.equals("")) {
-            blobContainerName.setError("Container name is required");
+        final String tableName = this.tableName.getText().toString().trim().replace(" ", "").toLowerCase();
+        if (tableName.equals("")) {
+            this.tableName.setError("Table name is required");
             return;
         }
 
@@ -86,9 +86,9 @@ public class AddBlobContainerFragment extends DialogFragment implements IAsyncTa
         }
 
         showProgressBar();
-        blobContainerName.setEnabled(false);
-        final CreateBlobContainerAsyncTask createBlobContainerAsyncTask = new CreateBlobContainerAsyncTask(this);
-        createBlobContainerAsyncTask.execute(getArguments().getString("storageAccount"), getArguments().getString("storageKey"), containerName);
+        this.tableName.setEnabled(false);
+        final CreateTableAsyncTask createTableAsyncTask = new CreateTableAsyncTask(this);
+        createTableAsyncTask.execute(getArguments().getString("storageAccount"), getArguments().getString("storageKey"), tableName);
     }
 
     private void showProgressBar() {
@@ -120,7 +120,7 @@ public class AddBlobContainerFragment extends DialogFragment implements IAsyncTa
     public void finished(String result) {
         hideProgressBar();
         if (mListener != null) {
-            mListener.onBlobContainerCreated(result);
+            mListener.onTableCreated(result);
         }
 
         dismiss();
@@ -143,6 +143,6 @@ public class AddBlobContainerFragment extends DialogFragment implements IAsyncTa
      * >Communicating with Other Fragments</a> for more information.
      */
     public interface OnFragmentInteractionListener {
-        void onBlobContainerCreated(String containerName);
+        void onTableCreated(String tableName);
     }
 }

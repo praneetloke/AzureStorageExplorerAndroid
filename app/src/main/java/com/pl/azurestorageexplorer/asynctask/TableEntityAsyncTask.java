@@ -30,7 +30,7 @@ public class TableEntityAsyncTask extends AsyncTask<String, Void, HashMap<String
 
     @Override
     protected HashMap<String, EntityProperty> doInBackground(String... params) {
-        String storageUrl = String.format(Constants.STORAGE_ACCOUNT_BLOB_URL_FORMAT, params[0], params[1]);
+        String storageUrl = String.format(Constants.STORAGE_ACCOUNT_URL_FORMAT, params[0], params[1]);
         HashMap<String, EntityProperty> tableEntities = null;
 
         try {

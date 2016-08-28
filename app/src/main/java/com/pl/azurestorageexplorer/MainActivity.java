@@ -38,6 +38,7 @@ import com.pl.azurestorageexplorer.asynctask.interfaces.IAsyncTaskCallback;
 import com.pl.azurestorageexplorer.enums.StorageServiceType;
 import com.pl.azurestorageexplorer.fragments.AddAccountDialogFragment;
 import com.pl.azurestorageexplorer.fragments.AddBlobContainerFragment;
+import com.pl.azurestorageexplorer.fragments.AddTableFragment;
 import com.pl.azurestorageexplorer.fragments.BlobListFragment;
 import com.pl.azurestorageexplorer.fragments.ConfirmationDialogFragment;
 import com.pl.azurestorageexplorer.fragments.ProgressDialogFragment;
@@ -91,7 +92,8 @@ public class MainActivity extends AppCompatActivity
         TableEntitiesFragment.OnFragmentInteractionListener,
         IDialogFragmentClickListener,
         ISubscriptionSelectionChangeListener,
-        AddBlobContainerFragment.OnFragmentInteractionListener {
+        AddBlobContainerFragment.OnFragmentInteractionListener,
+        AddTableFragment.OnFragmentInteractionListener {
 
     private static final int SIGN_OUT_REQUEST_CODE = 1;
     private static final String TAG = MainActivity.class.getName();
@@ -559,9 +561,9 @@ public class MainActivity extends AppCompatActivity
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
+        final AzureStorageAccount account = storageAccountAdapter.getItem(navMenuHeaderSpinner.getSelectedItemPosition());
 
         if (id == R.id.action_add_blob_container) {
-            final AzureStorageAccount account = storageAccountAdapter.getItem(navMenuHeaderSpinner.getSelectedItemPosition());
             AddBlobContainerFragment addBlobContainerFragment = new AddBlobContainerFragment();
             Bundle args = new Bundle();
             args.putString("storageAccount", account.getName());
@@ -569,7 +571,12 @@ public class MainActivity extends AppCompatActivity
             addBlobContainerFragment.setArguments(args);
             addBlobContainerFragment.show(getSupportFragmentManager(), AddBlobContainerFragment.class.getName());
         } else if (id == R.id.action_add_table) {
-            Toast.makeText(getApplicationContext(), "Coming soon!", Toast.LENGTH_SHORT).show();
+            AddTableFragment addTableFragment = new AddTableFragment();
+            Bundle args = new Bundle();
+            args.putString("storageAccount", account.getName());
+            args.putString("storageKey", account.getKey());
+            addTableFragment.setArguments(args);
+            addTableFragment.show(getSupportFragmentManager(), AddTableFragment.class.getName());
         }
 
         return super.onOptionsItemSelected(item);
@@ -713,7 +720,19 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public void onBlobContainerCreated(String containerName) {
+        if (blobContainersAdapter == null) {
+            return;
+        }
         blobContainersAdapter.add(new CloudBlobContainerSerializable(containerName));
         blobContainersAdapter.notifyDataSetChanged();
+    }
+
+    @Override
+    public void onTableCreated(String tableName) {
+        if (storageTablesAdapter == null) {
+            return;
+        }
+        storageTablesAdapter.add(new StorageTableSerializable(tableName));
+        storageTablesAdapter.notifyDataSetChanged();
     }
 }

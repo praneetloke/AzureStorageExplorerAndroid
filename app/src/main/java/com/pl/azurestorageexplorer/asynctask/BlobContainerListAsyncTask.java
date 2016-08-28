@@ -25,7 +25,7 @@ public class BlobContainerListAsyncTask extends AsyncTask<String, Void, ArrayLis
 
     @Override
     protected ArrayList<CloudBlobContainerSerializable> doInBackground(String... params) {
-        String storageUrl = String.format(Constants.STORAGE_ACCOUNT_BLOB_URL_FORMAT, params[0], params[1]);
+        String storageUrl = String.format(Constants.STORAGE_ACCOUNT_URL_FORMAT, params[0], params[1]);
         ArrayList<CloudBlobContainerSerializable> containers = null;
 
         try {

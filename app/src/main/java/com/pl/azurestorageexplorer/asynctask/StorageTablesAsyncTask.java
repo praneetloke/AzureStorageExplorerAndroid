@@ -24,7 +24,7 @@ public class StorageTablesAsyncTask extends AsyncTask<String, Void, ArrayList<St
 
     @Override
     protected ArrayList<StorageTableSerializable> doInBackground(String... params) {
-        String storageUrl = String.format(Constants.STORAGE_ACCOUNT_BLOB_URL_FORMAT, params[0], params[1]);
+        String storageUrl = String.format(Constants.STORAGE_ACCOUNT_URL_FORMAT, params[0], params[1]);
         ArrayList<StorageTableSerializable> cloudTables = null;
 
         try {

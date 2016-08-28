@@ -4,7 +4,7 @@ package com.pl.azurestorageexplorer.util;
  * Created by Praneet Loke on 4/16/2016.
  */
 public class Constants {
-    public static final String STORAGE_ACCOUNT_BLOB_URL_FORMAT = "DefaultEndpointsProtocol=https;" +
+    public static final String STORAGE_ACCOUNT_URL_FORMAT = "DefaultEndpointsProtocol=https;" +
             "AccountName=%s;" +
             "AccountKey=%s";
 
