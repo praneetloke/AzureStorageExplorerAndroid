@@ -19,14 +19,29 @@
             android:paddingLeft="15dip"
             android:paddingRight="10dip" />
 
-        <TextView
-            android:id="@+id/text1"
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical"
-            android:ellipsize="end"
-            android:maxLines="1"
-            android:textSize="16sp" />
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/text1"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:textSize="16sp" />
+
+            <TextView
+                android:id="@+id/blobSizeText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
+                android:maxLines="1"
+                android:textSize="12sp" />
+        </LinearLayout>
+
     </LinearLayout>
 
     <LinearLayout

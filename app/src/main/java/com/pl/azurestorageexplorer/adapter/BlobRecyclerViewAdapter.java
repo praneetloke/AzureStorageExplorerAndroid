@@ -18,6 +18,8 @@ import com.pl.azurestorageexplorer.util.Helpers;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 
+import static com.pl.azurestorageexplorer.util.Helpers.getHumanReadableLength;
+
 /**
  * Created by Praneet Loke on 4/16/2016.
  */
@@ -45,10 +47,19 @@ public class BlobRecyclerViewAdapter extends LinearRecyclerViewAdapter<ListBlobI
         try {
             boolean isFolder = !(blobItem instanceof CloudBlob);
             String name = (!isFolder) ? ((CloudBlob) blobItem).getName() : ((CloudBlobDirectory) blobItem).getPrefix();
-            TextView text1 = holder.mText1;
+            TextView text1 = holder.text1;
             text1.setText(name);
-            holder.mImageView.setImageResource(Helpers.getDrawableResourceForBlobType(isFolder, blobItem));
-            holder.mLayout2.setVisibility(isFolder ? View.GONE : View.VISIBLE);
+            if (!isFolder) {
+                holder.blobSizeText.setVisibility(View.VISIBLE);
+                final String size = getHumanReadableLength(((CloudBlob) blobItem).getProperties().getLength());
+                holder.blobSizeText.setText(size);
+            } else {
+                holder.blobSizeText.setText("");
+                holder.blobSizeText.setVisibility(View.GONE);
+            }
+
+            holder.imageView.setImageResource(Helpers.getDrawableResourceForBlobType(isFolder, blobItem));
+            holder.layout2.setVisibility(isFolder ? View.GONE : View.VISIBLE);
         } catch (URISyntaxException e) {
             //TODO:
         }
