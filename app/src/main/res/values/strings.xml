@@ -32,4 +32,6 @@
     <string name="table_name">Table name</string>
     <string name="create_table">Create table</string>
     <string name="create_container">Create container</string>
+    <string name="container_name_validation">Container name is required</string>
+    <string name="table_name_validation">Table name is required</string>
 </resources>

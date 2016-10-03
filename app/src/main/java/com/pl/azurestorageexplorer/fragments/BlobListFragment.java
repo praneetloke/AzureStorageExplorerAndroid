@@ -309,12 +309,14 @@ public class BlobListFragment extends Fragment
         final CloudBlob cloudBlob = (CloudBlob) recyclerViewAdapter.getDataset().get(currentlySelectedBlobItemAdapterPosition);
 
         switch ((int) view.getTag()) {
-            case R.drawable.ic_info_outline:
+            case R.drawable.ic_info_outline: {
                 BlobInfoDialogFragment fragment = new BlobInfoDialogFragment();
-                fragment.setArguments(Helpers.getBlobInfoFromListBlobItem(cloudBlob));
+                Bundle args = new Bundle();
+                fragment.setArguments(Helpers.getBlobInfoFromListBlobItem(args, cloudBlob));
                 fragment.show(getActivity().getSupportFragmentManager(), BlobInfoDialogFragment.class.getName());
+            }
                 break;
-            case R.drawable.ic_delete_forever:
+            case R.drawable.ic_delete_forever: {
                 Bundle args = new Bundle();
                 args.putString("title", getString(R.string.delete_blob_title));
                 args.putString("message", getString(R.string.delete_blob_confirmation_message));
@@ -322,6 +324,7 @@ public class BlobListFragment extends Fragment
                 deleteConfirmation.setArguments(args);
                 deleteConfirmation.setTargetFragment(this, DELETE_REQUEST_CODE);
                 deleteConfirmation.show(getActivity().getSupportFragmentManager(), ConfirmationDialogFragment.class.getName());
+            }
                 break;
             case R.drawable.ic_download:
                 //download the blob

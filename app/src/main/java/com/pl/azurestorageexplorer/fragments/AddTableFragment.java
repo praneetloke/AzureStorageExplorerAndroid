@@ -75,7 +75,7 @@ public class AddTableFragment extends DialogFragment implements IAsyncTaskCallba
     private void createBlobContainer() {
         final String tableName = this.tableName.getText().toString().trim().replace(" ", "").toLowerCase();
         if (tableName.equals("")) {
-            this.tableName.setError("Table name is required");
+            this.tableName.setError(getString(R.string.table_name_validation));
             return;
         }
 

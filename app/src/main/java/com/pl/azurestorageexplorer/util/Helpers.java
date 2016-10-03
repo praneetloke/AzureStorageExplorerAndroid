@@ -7,6 +7,7 @@ import com.microsoft.azure.storage.blob.ListBlobItem;
 import com.pl.azurestorageexplorer.R;
 
 import java.net.URISyntaxException;
+import java.util.Date;
 
 /**
  * Created by Praneet Loke on 4/22/2016.
@@ -30,18 +31,20 @@ public class Helpers {
         return R.drawable.ic_file_general;
     }
 
-    public static String getBlobContentType(ListBlobItem blobItem) {
-        return ((CloudBlob) blobItem).getProperties().getContentType();
-    }
-
-    public static Bundle getBlobInfoFromListBlobItem(CloudBlob cloudBlob) {
-        Bundle args = new Bundle();
+    public static Bundle getBlobInfoFromListBlobItem(Bundle args, CloudBlob cloudBlob) {
         try {
             args.putString("title", cloudBlob.getName());
         } catch (URISyntaxException e) {
             //ignore
         }
-        args.putString("lastModified", cloudBlob.getProperties().getLastModified().toString());
+
+        Date lastModified = cloudBlob.getProperties().getLastModified();
+        if (lastModified != null) {
+            args.putString("lastModified", lastModified.toString());
+        } else {
+            args.putString("lastModified", "n/a");
+        }
+
         args.putString("contentType", cloudBlob.getProperties().getContentType());
         args.putString("cacheControl", cloudBlob.getProperties().getCacheControl());
         args.putString("blobType", cloudBlob.getProperties().getBlobType().name());
@@ -52,7 +55,7 @@ public class Helpers {
 
     public static String getHumanReadableLength(long bytes) {
         String result = null;
-        if (bytes > 1024 && bytes / 1024 < 1024) {
+        if (bytes >= 1024 && bytes / 1024 < 1024) {
             result = String.format("%,.2f KB", (double) bytes / 1024);
         } else if (bytes / 1024 >= 1024 && bytes / 1048576 < 1024) {
             result = String.format("%,.2f MB", (double) bytes / 1048576);

@@ -75,7 +75,7 @@ public class AddBlobContainerFragment extends DialogFragment implements IAsyncTa
     private void createBlobContainer() {
         final String containerName = blobContainerName.getText().toString().trim().replace(" ", "").toLowerCase();
         if (containerName.equals("")) {
-            blobContainerName.setError("Container name is required");
+            blobContainerName.setError(getString(R.string.container_name_validation));
             return;
         }
 
