@@ -3,11 +3,7 @@ package com.pl.azurestorageexplorer;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.support.annotation.VisibleForTesting;
 import android.support.design.widget.NavigationView;
-import android.support.test.espresso.IdlingResource;
 import android.support.v4.app.Fragment;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
@@ -40,8 +36,6 @@ import com.pl.azurestorageexplorer.asynctask.BlobContainerListAsyncTask;
 import com.pl.azurestorageexplorer.asynctask.StorageTablesAsyncTask;
 import com.pl.azurestorageexplorer.asynctask.interfaces.IAsyncTaskCallback;
 import com.pl.azurestorageexplorer.enums.StorageServiceType;
-import com.pl.azurestorageexplorer.espresso.SimpleIdlingResource;
-import com.pl.azurestorageexplorer.fragments.AddAccountDialogFragment;
 import com.pl.azurestorageexplorer.fragments.AddBlobContainerFragment;
 import com.pl.azurestorageexplorer.fragments.AddTableFragment;
 import com.pl.azurestorageexplorer.fragments.BlobListFragment;
@@ -91,7 +85,6 @@ import okhttp3.Response;
 public class MainActivity extends AppCompatActivity
         implements
         NavigationView.OnNavigationItemSelectedListener,
-        AddAccountDialogFragment.OnFragmentInteractionListener,
         IAsyncTaskCallback<ArrayList<?>>,
         BlobListFragment.OnFragmentInteractionListener,
         TableEntitiesFragment.OnFragmentInteractionListener,
@@ -116,24 +109,6 @@ public class MainActivity extends AppCompatActivity
 
     //the default selected menu item in the navigation drawer is Blobs
     private StorageServiceType storageServiceType = StorageServiceType.BLOB;
-
-    // The Idling Resource which will be null in production.
-    @Nullable
-    private SimpleIdlingResource accessTokenIdlingResource;
-
-    /**
-     * Only called from test, creates and returns a new {@link SimpleIdlingResource}.
-     */
-    @VisibleForTesting
-    @NonNull
-    public IdlingResource getAccessTokenIdlingResource() {
-        if (this.accessTokenIdlingResource == null) {
-            this.accessTokenIdlingResource = new SimpleIdlingResource();
-            //set the idling resource to false because we will first fetch the access token which can take a while
-            this.accessTokenIdlingResource.setIdleState(false);
-        }
-        return this.accessTokenIdlingResource;
-    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -206,10 +181,6 @@ public class MainActivity extends AppCompatActivity
                     String accessToken = credential.getAccessToken();
                     AzureStorageExplorerApplication.accessToken.put(Constants.CLASSIC_AZURE_AUTHORIZE_URL, accessToken);
 
-                    //to enable Espresso to continue with tests, set the idling state to true
-                    if (MainActivity.this.accessTokenIdlingResource != null) {
-                        MainActivity.this.accessTokenIdlingResource.setIdleState(true);
-                    }
                     //now that we have access tokens for both ARM and Classic..start with fetching the subscriptions
                     fetchAzureSubscriptions();
                 } catch (IOException e) {
@@ -657,7 +628,6 @@ public class MainActivity extends AppCompatActivity
         return true;
     }
 
-    @Override
     public void onStorageAccountAdded(AzureStorageAccount account) {
         handler.post(new Runnable() {
             @Override
