@@ -91,6 +91,7 @@
 -dontwarn com.google.android.gms.**
 -dontwarn android.support.v4.media.**
 -dontwarn android.support.v4.**
+-dontwarn javax.annotation**
 
 -keep,includedescriptorclasses class com.fasterxml.** { *; }
 -dontwarn com.fasterxml.**
