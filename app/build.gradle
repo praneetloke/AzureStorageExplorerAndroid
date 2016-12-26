@@ -12,7 +12,7 @@ android {
         applicationId "com.pl.azurestorageexplorer"
         minSdkVersion 16
         targetSdkVersion 24
-        versionCode 8
+        versionCode 9
         versionName "1.0.0"
         testInstrumentationRunner 'android.support.test.runner.AndroidJUnitRunner'
     }
@@ -45,7 +45,6 @@ dependencies {
     compile('com.google.http-client:google-http-client-jackson:1.22.0') {
         exclude group: 'com.google.code.findbugs', module: 'jsr305'
     }
-    compile 'com.wu-man:android-oauth-client:0.4.5@aar'
     compile 'com.squareup.okhttp3:okhttp:3.4.0-RC1'
     compile('com.google.code.gson:gson:2.7') {
         exclude group: 'com.google.code.findbugs', module: 'jsr305'

@@ -203,8 +203,6 @@ public class MainActivity extends AppCompatActivity
                 }
             }
         };
-
-        //kick-off requesting the access token for the Azure RM API first
         authenticate(Constants.AZURE_AUTHORIZE_URL, callback, "arm");
     }
 
@@ -244,10 +242,14 @@ public class MainActivity extends AppCompatActivity
                         return false;
                     }
 
+                    @Override
+                    public boolean isDomStorageEnabledForWebView() {
+                        return true;
+                    }
+
                 };
 
         OAuthManager oauth = new OAuthManager(authorizationFlow, controller);
-
 
         try {
             oauth.authorizeImplicitly(credentialStoreUserId, callback, null);
