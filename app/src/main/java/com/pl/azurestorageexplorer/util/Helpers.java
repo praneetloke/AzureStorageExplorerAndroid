@@ -1,11 +1,13 @@
 package com.pl.azurestorageexplorer.util;
 
+import android.net.Uri;
 import android.os.Bundle;
 
 import com.microsoft.azure.storage.blob.CloudBlob;
 import com.microsoft.azure.storage.blob.ListBlobItem;
 import com.pl.azurestorageexplorer.R;
 
+import java.io.File;
 import java.net.URISyntaxException;
 import java.util.Date;
 
@@ -66,5 +68,19 @@ public class Helpers {
         }
 
         return result;
+    }
+
+    public static String getMimeType(File file) {
+        String extension = android.webkit.MimeTypeMap.getFileExtensionFromUrl(Uri.fromFile(file).toString());
+        if (extension == null || extension.isEmpty()) {
+            return "application/octet-stream";
+        }
+        String mimeType = android.webkit.MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension);
+
+        if (mimeType == null || mimeType.isEmpty() || mimeType.equals("text/css")) {
+            mimeType = "text/plain";
+        }
+
+        return mimeType;
     }
 }

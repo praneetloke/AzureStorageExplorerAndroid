@@ -9,6 +9,7 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
@@ -17,6 +18,7 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.content.FileProvider;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.ListPopupWindow;
@@ -359,12 +361,13 @@ public class BlobListFragment extends Fragment
                                     hideProgressBar();
                                 }
                             });
+
                             DownloadManager downloadManager = (DownloadManager) context.getSystemService(Context.DOWNLOAD_SERVICE);
                             downloadManager.addCompletedDownload(
                                     fileName,
                                     cloudBlob.getName(),
                                     true,
-                                    cloudBlob.getProperties().getContentType(),
+                                    Helpers.getMimeType(blobFile),
                                     blobFile.getAbsolutePath(),
                                     blobFile.length(),
                                     true);
@@ -392,12 +395,12 @@ public class BlobListFragment extends Fragment
                         });
                         try {
                             final String path = getContext().getExternalCacheDir().getAbsolutePath();
-                            File file = new File(path);
-                            if (!file.exists()) {
-                                file.mkdirs();
+                            File cachePath = new File(path, "cache");
+                            if (!cachePath.exists()) {
+                                cachePath.mkdirs();
                             }
                             String fileName = cloudBlob.getName().replace("/", "_");
-                            File blobFile = new File(file.getAbsolutePath(), fileName);
+                            File blobFile = new File(cachePath.getAbsolutePath(), fileName);
                             if (!blobFile.exists()) {
                                 blobFile.createNewFile();
                             }
@@ -409,16 +412,18 @@ public class BlobListFragment extends Fragment
                                     hideProgressBar();
                                 }
                             });
-                            String extension = android.webkit.MimeTypeMap.getFileExtensionFromUrl(Uri.fromFile(blobFile).toString());
-                            String mimeType = android.webkit.MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension);
 
-                            if (mimeType == null || mimeType.isEmpty() || mimeType.equals("text/css")) {
-                                mimeType = "text/plain";
+                            String mimeType = Helpers.getMimeType(blobFile);
+                            Intent intent = new Intent(android.content.Intent.ACTION_VIEW);
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                                intent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                                Uri contentUri = FileProvider.getUriForFile(getContext(), "com.myappfactory.fileprovider", blobFile);
+                                intent.setDataAndType(contentUri, mimeType);
+                            } else {
+                                intent.setDataAndType(Uri.fromFile(blobFile), mimeType);
                             }
 
-                            Intent myIntent = new Intent(android.content.Intent.ACTION_VIEW);
-                            myIntent.setDataAndType(Uri.fromFile(blobFile), mimeType);
-                            startActivity(myIntent);
+                            startActivity(intent);
                         } catch (Exception e) {
                             showToast(e.getMessage());
                         }
