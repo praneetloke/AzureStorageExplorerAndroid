@@ -128,7 +128,7 @@ public class MainActivity extends AppCompatActivity
         drawer.setDrawerListener(toggle);
         toggle.syncState();
 
-        blobContainersAdapter = new BlobContainersAdapter(getApplicationContext(), new ArrayList<CloudBlobContainerSerializable>() {
+        blobContainersAdapter = new BlobContainersAdapter(this, new ArrayList<CloudBlobContainerSerializable>() {
         });
         toolbarSpinner = (Spinner) toolbar.findViewById(R.id.spinner_nav);
         toolbarSpinner.setAdapter(blobContainersAdapter);
@@ -413,7 +413,7 @@ public class MainActivity extends AppCompatActivity
 
     private void setupStorageAccountsInNavigationView() {
         ArrayList<AzureStorageAccount> accounts = AzureStorageExplorerApplication.getCustomSQLiteHelper().getFilteredAzureAccounts();
-        storageAccountAdapter = new StorageAccountAdapter(getApplicationContext(), accounts);
+        storageAccountAdapter = new StorageAccountAdapter(this, accounts);
 
         final NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);

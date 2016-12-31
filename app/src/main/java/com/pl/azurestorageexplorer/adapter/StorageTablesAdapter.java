@@ -29,7 +29,7 @@ public class StorageTablesAdapter extends SpinnerArrayAdapter<StorageTableSerial
     public View getDropDownView(int position, View convertView, ViewGroup parent) {
         View item = null;
         if (convertView == null) {
-            item = LayoutInflater.from(getContext()).inflate(R.layout.spinner_row, parent, false);
+            item = LayoutInflater.from(parent.getContext()).inflate(R.layout.spinner_row, parent, false);
         } else {
             item = convertView;
         }

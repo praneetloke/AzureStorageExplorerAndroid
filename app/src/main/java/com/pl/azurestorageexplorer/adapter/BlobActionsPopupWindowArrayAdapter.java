@@ -33,7 +33,7 @@ public class BlobActionsPopupWindowArrayAdapter extends SpinnerArrayAdapter<Stri
     public View getDropDownView(int position, View convertView, ViewGroup parent) {
         View item = null;
         if (convertView == null) {
-            item = LayoutInflater.from(getContext()).inflate(android.R.layout.simple_dropdown_item_1line, parent, false);
+            item = LayoutInflater.from(parent.getContext()).inflate(android.R.layout.simple_dropdown_item_1line, parent, false);
         } else {
             item = convertView;
         }
