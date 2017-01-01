@@ -34,4 +34,8 @@
     <string name="create_container">Create container</string>
     <string name="container_name_validation">Container name is required</string>
     <string name="table_name_validation">Table name is required</string>
+    <string name="blob_created">Blob created.</string>
+    <string name="failed_to_create_blob">Failed to create blob.</string>
+    <string name="entity_deleted">Entity deleted.</string>
+    <string name="failed_to_delete_entity">Failed to delete the entity.</string>
 </resources>

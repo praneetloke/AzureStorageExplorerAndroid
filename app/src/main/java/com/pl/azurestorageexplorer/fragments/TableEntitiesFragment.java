@@ -23,7 +23,9 @@ import com.pl.azurestorageexplorer.R;
 import com.pl.azurestorageexplorer.adapter.BlobActionsPopupWindowArrayAdapter;
 import com.pl.azurestorageexplorer.adapter.TableEntitiesRecyclerViewAdapter;
 import com.pl.azurestorageexplorer.adapter.interfaces.IRecyclerViewAdapterClickListener;
+import com.pl.azurestorageexplorer.asynctask.DeleteTableEntityAsyncTask;
 import com.pl.azurestorageexplorer.asynctask.TableEntitiesAsyncTask;
+import com.pl.azurestorageexplorer.asynctask.interfaces.IAsyncTaskCallback;
 import com.pl.azurestorageexplorer.asynctask.interfaces.IAsyncTaskCallbackWithResultContinuation;
 import com.pl.azurestorageexplorer.fragments.interfaces.IDialogFragmentClickListener;
 import com.pl.azurestorageexplorer.fragments.interfaces.ISpinnerNavListener;
@@ -42,7 +44,8 @@ public class TableEntitiesFragment extends Fragment
         IRecyclerViewAdapterClickListener<DynamicTableEntity>,
         AdapterView.OnItemClickListener,
         IDialogFragmentClickListener,
-        IAsyncTaskCallbackWithResultContinuation<ArrayList<DynamicTableEntity>> {
+        IAsyncTaskCallbackWithResultContinuation<ArrayList<DynamicTableEntity>>,
+        IAsyncTaskCallback {
 
     private static final ArrayList<String> TABLE_ENTITY_ACTIONS = new ArrayList<>();
     private static final ArrayList<Integer> TABLE_ENTITY_ACTIONS_ICONS = new ArrayList<>();
@@ -131,6 +134,25 @@ public class TableEntitiesFragment extends Fragment
     }
 
     @Override
+    public void finished(Object result) {
+        hideProgressBar();
+        if ((Boolean) result) {
+            //delete this item from the local dataset and notify the adapter
+            DynamicTableEntity entityToDelete = recyclerViewAdapter.getDataset().get(currentlySelectedTableEntityItemAdapterPosition);
+            recyclerViewAdapter.getDataset().remove(entityToDelete);
+            getActivity().runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    recyclerViewAdapter.notifyDataSetChanged();
+                }
+            });
+            showSnackbar(getString(R.string.entity_deleted));
+        } else {
+            showSnackbar(getString(R.string.failed_to_delete_entity));
+        }
+    }
+
+    @Override
     public void failed(String exceptionMessage) {
         getActivity().runOnUiThread(new Runnable() {
             @Override
@@ -204,7 +226,9 @@ public class TableEntitiesFragment extends Fragment
     @Override
     public void onConfirmationDialogPositiveClick(int requestCode) {
         if (requestCode == DELETE_REQUEST_CODE) {
-            //TODO: delete the entity
+            DynamicTableEntity entityToDelete = recyclerViewAdapter.getDataset().get(currentlySelectedTableEntityItemAdapterPosition);
+            DeleteTableEntityAsyncTask task = new DeleteTableEntityAsyncTask(this);
+            task.execute(azureStorageAccount.getName(), azureStorageAccount.getKey(), currentTableName, entityToDelete.getPartitionKey(), entityToDelete.getRowKey());
         }
     }
 
@@ -231,7 +255,6 @@ public class TableEntitiesFragment extends Fragment
                 deleteConfirmation.setTargetFragment(this, DELETE_REQUEST_CODE);
                 deleteConfirmation.show(getActivity().getSupportFragmentManager(), ConfirmationDialogFragment.class.getName());
             }
-
                 break;
             case R.drawable.ic_view: {
                 //show the full entity in a dialog fragment

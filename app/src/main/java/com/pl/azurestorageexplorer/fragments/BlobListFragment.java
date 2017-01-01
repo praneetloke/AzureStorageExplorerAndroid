@@ -177,7 +177,7 @@ public class BlobListFragment extends Fragment
         if (result instanceof ArrayList) {
             recyclerViewAdapter.replaceDataset((ArrayList<ListBlobItem>) result);
         } else if (result instanceof Boolean) {
-            showSnackbar("Blob created");
+            showSnackbar((Boolean) result ? getString(R.string.blob_created) : getString(R.string.failed_to_create_blob));
         }
     }
 
