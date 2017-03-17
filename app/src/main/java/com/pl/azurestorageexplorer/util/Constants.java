@@ -8,7 +8,7 @@ public class Constants {
             "AccountName=%s;" +
             "AccountKey=%s";
 
-    public static final String AZURE_AUTH_REDIRECT_URI = "https://azurestorageexplorer";
+    public static final String AZURE_AUTH_REDIRECT_URI = "https://azurestorageexplorer/";
     public static final String AZURE_AUTHORIZE_URL = "https://login.microsoftonline.com/common/oauth2/authorize?resource=https%3A%2F%2Fmanagement.azure.com%2F";
     public static final String AZURE_TOKEN_URL = "https://login.microsoftonline.com/common/oauth2/token";
     public static final String AZURE_AD_APP_CLIENT_ID = "9a2e9bbc-6de9-4b91-8899-10e8c4235cc2";

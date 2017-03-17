@@ -38,4 +38,5 @@
     <string name="failed_to_create_blob">Failed to create blob.</string>
     <string name="entity_deleted">Entity deleted.</string>
     <string name="failed_to_delete_entity">Failed to delete the entity.</string>
+    <string name="nothing_to_show">Nothing to show</string>
 </resources>
