@@ -26,13 +26,17 @@ android {
 
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
-    testCompile 'junit:junit:4.12'
-    testCompile 'org.mockito:mockito-core:1.10.19'
 
-    compile 'com.android.support:appcompat-v7:25.0.1'
-    compile 'com.android.support:design:25.0.1'
-    compile 'com.android.support:support-v4:25.0.1'
+    compile 'com.android.support:appcompat-v7:25.3.0'
+    compile 'com.android.support:design:25.3.0'
+    compile 'com.android.support:support-v4:25.3.0'
+    compile 'com.android.support:support-annotations:25.3.0'
+
     compile 'com.microsoft.azure.android:azure-storage-android:0.7.0@aar'
+    compile ('com.github.praneetloke:android-oauth-client:-SNAPSHOT') {
+        exclude group: 'com.google.code.findbugs', module: 'jsr305'
+        exclude group: 'com.android.support', module: 'support-v4'
+    }
     compile('com.google.api-client:google-api-client-android:1.22.0') {
         exclude group: 'com.google.android.google-play-services', module: 'google-play-services'
         exclude group: 'junit', module: 'junit'
@@ -49,9 +53,11 @@ dependencies {
     compile('com.google.code.gson:gson:2.7') {
         exclude group: 'com.google.code.findbugs', module: 'jsr305'
     }
+
+    compile 'com.android.support.test.espresso:espresso-idling-resource:2.2.2'
+    testCompile 'junit:junit:4.12'
+    testCompile 'org.mockito:mockito-core:1.10.19'
     androidTestCompile 'com.android.support.test.espresso:espresso-core:2.2.2', {
         exclude group: 'com.android.support', module: 'support-annotations'
     }
-    compile 'com.android.support:support-annotations:24.2.1'
-    compile 'com.android.support.test.espresso:espresso-idling-resource:2.2.2'
 }

@@ -4,6 +4,7 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.design.widget.NavigationView;
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
@@ -44,6 +45,7 @@ import com.pl.azurestorageexplorer.fragments.ProgressDialogFragment;
 import com.pl.azurestorageexplorer.fragments.SubscriptionsFilterDialogFragment;
 import com.pl.azurestorageexplorer.fragments.TableEntitiesFragment;
 import com.pl.azurestorageexplorer.fragments.interfaces.IBlobItemNavigateListener;
+import com.pl.azurestorageexplorer.fragments.interfaces.ICoordinatorLayoutFragment;
 import com.pl.azurestorageexplorer.fragments.interfaces.IDialogFragmentClickListener;
 import com.pl.azurestorageexplorer.fragments.interfaces.ISpinnerNavListener;
 import com.pl.azurestorageexplorer.fragments.interfaces.ISubscriptionSelectionChangeListener;
@@ -206,7 +208,7 @@ public class MainActivity extends AppCompatActivity
         authenticate(Constants.AZURE_AUTHORIZE_URL, callback, "arm");
     }
 
-    private void authenticate(final String authorizeUrl, OAuthManager.OAuthCallback callback, String credentialStoreUserId) {
+    private void authenticate(final String authorizeUrl, OAuthManager.OAuthCallback<Credential> callback, String credentialStoreUserId) {
         AuthorizationFlow.Builder builder = new AuthorizationFlow.Builder(
                 BearerToken.authorizationHeaderAccessMethod(),
                 AndroidHttp.newCompatibleTransport(),
@@ -291,6 +293,22 @@ public class MainActivity extends AppCompatActivity
                 }
 
                 final ARMSubscriptions subscriptions = gson.fromJson(response.body().charStream(), ARMSubscriptions.class);
+
+                if (subscriptions.getValue().size() == 0) {
+                    progressDialogFragment.dismiss();
+                    final View view = MainActivity.this.fragmentStack.peek() instanceof ICoordinatorLayoutFragment
+                            ? ((ICoordinatorLayoutFragment) MainActivity.this.fragmentStack.peek()).getCoordinatorLayout()
+                            : MainActivity.this.fragmentStack.peek().getView();
+                    Snackbar.make(view , "No ARM subscriptions found", Snackbar.LENGTH_INDEFINITE)
+                            .setAction("Retry", new View.OnClickListener() {
+                                @Override
+                                public void onClick(View v) {
+                                    fetchAzureSubscriptions();
+                                }
+                            }).show();
+
+                    return;
+                }
 
                 //start a new thread to insert all subscriptions into SQLite
                 new Thread(new AzureSubscriptionSQLiteRunnable(subscriptions.getValue())).start();

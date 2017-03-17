@@ -43,6 +43,7 @@ import com.pl.azurestorageexplorer.asynctask.BlobListAsyncTask;
 import com.pl.azurestorageexplorer.asynctask.UploadBlobAsyncTask;
 import com.pl.azurestorageexplorer.asynctask.interfaces.IAsyncTaskCallback;
 import com.pl.azurestorageexplorer.fragments.interfaces.IBlobItemNavigateListener;
+import com.pl.azurestorageexplorer.fragments.interfaces.ICoordinatorLayoutFragment;
 import com.pl.azurestorageexplorer.fragments.interfaces.IDialogFragmentClickListener;
 import com.pl.azurestorageexplorer.fragments.interfaces.ISpinnerNavListener;
 import com.pl.azurestorageexplorer.models.BlobToUpload;
@@ -66,7 +67,8 @@ public class BlobListFragment extends Fragment
         IAsyncTaskCallback,
         IRecyclerViewAdapterClickListener<ListBlobItem>,
         AdapterView.OnItemClickListener,
-        IDialogFragmentClickListener {
+        IDialogFragmentClickListener,
+        ICoordinatorLayoutFragment {
 
     private static final ArrayList<String> BLOB_ACTIONS = new ArrayList<>();
     private static final ArrayList<Integer> BLOB_ACTIONS_ICONS = new ArrayList<>();
@@ -163,7 +165,7 @@ public class BlobListFragment extends Fragment
         currentBlobContainerName = container.getName();
         currentAzureStorageAccount = account;
 
-        Snackbar.make(getView().findViewById(R.id.blobListCoordinatorLayout), currentBlobContainerName, Snackbar.LENGTH_SHORT).show();
+        Snackbar.make(this.getCoordinatorLayout(), currentBlobContainerName, Snackbar.LENGTH_SHORT).show();
 
         showProgressBar();
         //get the blobs for this container
@@ -255,7 +257,7 @@ public class BlobListFragment extends Fragment
         getActivity().runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                Snackbar.make(getView(), message, Snackbar.LENGTH_SHORT).show();
+                Snackbar.make(BlobListFragment.this.getCoordinatorLayout(), message, Snackbar.LENGTH_SHORT).show();
             }
         });
     }
@@ -546,6 +548,11 @@ public class BlobListFragment extends Fragment
         }
 
         return blobToUpload;
+    }
+
+    @Override
+    public View getCoordinatorLayout() {
+        return getView().findViewById(R.id.blobListCoordinatorLayout);
     }
 
     /**
