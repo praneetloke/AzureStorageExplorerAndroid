@@ -8,18 +8,37 @@ android {
     compileSdkVersion 25
     buildToolsVersion '25.0.2'
 
-    defaultConfig {
-        applicationId "com.pl.azurestorageexplorer"
-        minSdkVersion 16
-        targetSdkVersion 25
-        versionCode 12
-        versionName "1.0.0"
-        testInstrumentationRunner 'android.support.test.runner.AndroidJUnitRunner'
+    def versionPropsFile = file('version.properties')
+    if (versionPropsFile.canRead()) {
+        def Properties versionProps = new Properties()
+
+        versionProps.load(new FileInputStream(versionPropsFile))
+
+        def code = versionProps['VERSION_CODE'].toInteger() + 1
+
+        versionProps['VERSION_CODE'] = code.toString()
+
+        //save the updated version code
+        versionProps.store(versionPropsFile.newWriter(), null)
+
+        defaultConfig {
+            applicationId "com.pl.azurestorageexplorer"
+            minSdkVersion 16
+            targetSdkVersion 25
+            versionCode code
+            versionName "1.0.0"
+            testInstrumentationRunner 'android.support.test.runner.AndroidJUnitRunner'
+        }
     }
+    else {
+        throw new GradleException("Could not read version.properties!")
+    }
+
     buildTypes {
         release {
             minifyEnabled true
             proguardFiles android.getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            zipAlignEnabled true
         }
     }
 }
