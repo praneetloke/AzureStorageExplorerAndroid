@@ -44,25 +44,21 @@ public class BlobRecyclerViewAdapter extends LinearRecyclerViewAdapter<ListBlobI
     @Override
     public void onBindViewHolder(BlobItemViewHolder holder, int position) {
         ListBlobItem blobItem = getDataset().get(position);
-        try {
-            boolean isFolder = !(blobItem instanceof CloudBlob);
-            String name = (!isFolder) ? ((CloudBlob) blobItem).getName() : ((CloudBlobDirectory) blobItem).getPrefix();
-            TextView text1 = holder.text1;
-            text1.setText(name);
-            if (!isFolder) {
-                holder.blobSizeText.setVisibility(View.VISIBLE);
-                final String size = getHumanReadableLength(((CloudBlob) blobItem).getProperties().getLength());
-                holder.blobSizeText.setText(size);
-            } else {
-                holder.blobSizeText.setText("");
-                holder.blobSizeText.setVisibility(View.GONE);
-            }
-
-            holder.imageView.setImageResource(Helpers.getDrawableResourceForBlobType(isFolder, blobItem));
-            holder.layout2.setVisibility(isFolder ? View.GONE : View.VISIBLE);
-        } catch (URISyntaxException e) {
-            //TODO:
+        boolean isFolder = !(blobItem instanceof CloudBlob);
+        String name = (!isFolder) ? ((CloudBlob) blobItem).getName() : ((CloudBlobDirectory) blobItem).getPrefix();
+        TextView text1 = holder.text1;
+        text1.setText(name);
+        if (!isFolder) {
+            holder.blobSizeText.setVisibility(View.VISIBLE);
+            final String size = getHumanReadableLength(((CloudBlob) blobItem).getProperties().getLength());
+            holder.blobSizeText.setText(size);
+        } else {
+            holder.blobSizeText.setText("");
+            holder.blobSizeText.setVisibility(View.GONE);
         }
+
+        holder.imageView.setImageResource(Helpers.getDrawableResourceForBlobType(isFolder, blobItem));
+        holder.layout2.setVisibility(isFolder ? View.GONE : View.VISIBLE);
     }
 
     @Override

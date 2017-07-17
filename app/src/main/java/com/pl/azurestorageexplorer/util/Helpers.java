@@ -34,11 +34,7 @@ public class Helpers {
     }
 
     public static Bundle getBlobInfoFromListBlobItem(Bundle args, CloudBlob cloudBlob) {
-        try {
-            args.putString("title", cloudBlob.getName());
-        } catch (URISyntaxException e) {
-            //ignore
-        }
+        args.putString("title", cloudBlob.getName());
 
         Date lastModified = cloudBlob.getProperties().getLastModified();
         if (lastModified != null) {

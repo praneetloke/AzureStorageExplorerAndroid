@@ -115,13 +115,9 @@ public class HelpersTest {
 
     @Test
     public void getBlobInfoFromListBlobItem_withNonNullBlobItem_putsTitleInBundle() {
-        try {
-            Helpers.getBlobInfoFromListBlobItem(mockBundle, blobItem);
-            //verify putString was called for the "title"
-            verify(mockBundle).putString(eq("title"), eq(blobItem.getName()));
-        } catch (URISyntaxException e) {
-            e.printStackTrace();
-        }
+        Helpers.getBlobInfoFromListBlobItem(mockBundle, blobItem);
+        //verify putString was called for the "title"
+        verify(mockBundle).putString(eq("title"), eq(blobItem.getName()));
     }
 
     @Test
