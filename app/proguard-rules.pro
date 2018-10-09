@@ -92,6 +92,9 @@
 -dontwarn android.support.v4.media.**
 -dontwarn android.support.v4.**
 -dontwarn javax.annotation**
+-dontwarn org.apache.commons.**
+-dontwarn android.net.http.AndroidHttpClient*
+-dontwarn org.apache.http.**
 
 -keep,includedescriptorclasses class com.fasterxml.** { *; }
 -dontwarn com.fasterxml.**
