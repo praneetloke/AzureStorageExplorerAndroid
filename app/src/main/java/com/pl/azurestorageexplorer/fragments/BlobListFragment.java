@@ -19,7 +19,6 @@ import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.content.FileProvider;
-import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.ListPopupWindow;
 import android.support.v7.widget.RecyclerView;
@@ -28,7 +27,9 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
+import android.widget.HorizontalScrollView;
 import android.widget.ProgressBar;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.microsoft.azure.storage.StorageException;
@@ -110,31 +111,22 @@ public class BlobListFragment extends Fragment
     public View onCreateView(LayoutInflater layoutInflater, ViewGroup container, Bundle savedInstanceState) {
         View root = layoutInflater.inflate(R.layout.blob_list_fragment, container, false);
 
-        RecyclerView recyclerView = (RecyclerView) root.findViewById(R.id.blobListRecyclerView);
+        RecyclerView recyclerView = root.findViewById(R.id.blobListRecyclerView);
         recyclerView.setHasFixedSize(true);
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getActivity());
         recyclerView.setLayoutManager(linearLayoutManager);
         recyclerViewAdapter = new BlobRecyclerViewAdapter(null, this);
         recyclerView.setAdapter(recyclerViewAdapter);
 
-        progressBar = (ProgressBar) root.findViewById(R.id.blobListProgressBar);
+        progressBar = root.findViewById(R.id.blobListProgressBar);
 
-        FloatingActionButton fab = (FloatingActionButton) root.findViewById(R.id.add_blob);
+        FloatingActionButton fab = root.findViewById(R.id.add_blob);
         if (fab != null) {
             fab.setImageResource(R.drawable.ic_add);
             fab.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    // ACTION_OPEN_DOCUMENT is the intent to choose a file via the system's file
-                    // browser.
-                    Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
 
-                    // Filter to only show results that can be "opened", such as a
-                    // file (as opposed to a list of contacts or timezones)
-                    intent.addCategory(Intent.CATEGORY_OPENABLE);
-                    intent.setType("*/*");
-
-                    startActivityForResult(intent, INTENT_OPEN_DOCUMENT_REQUEST_CODE);
                 }
             });
         }
@@ -178,6 +170,17 @@ public class BlobListFragment extends Fragment
         hideProgressBar();
         if (result instanceof ArrayList) {
             recyclerViewAdapter.replaceDataset((ArrayList<ListBlobItem>) result);
+            // update the breadcrumbs
+            TextView breadcrumbsTextView = getView().findViewById(R.id.breadcrumbsTextView);
+            if (breadcrumbsTextView != null) {
+                if (currentBlobDirectory != null) {
+                    breadcrumbsTextView.setText(currentBlobDirectory.getPrefix());
+                } else {
+                    breadcrumbsTextView.setText("/");
+                }
+            }
+            final HorizontalScrollView horizontalScrollView = getView().findViewById(R.id.horizontalScrollView);
+            horizontalScrollView.post(() -> horizontalScrollView.fullScroll(HorizontalScrollView.FOCUS_RIGHT));
         } else if (result instanceof Boolean) {
             showSnackbar((Boolean) result ? getString(R.string.blob_created) : getString(R.string.failed_to_create_blob));
         }
@@ -185,27 +188,14 @@ public class BlobListFragment extends Fragment
 
     @Override
     public void failed(String exceptionMessage) {
-        getActivity().runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                progressBar.setVisibility(View.GONE);
-            }
-        });
+        getActivity().runOnUiThread(() -> progressBar.setVisibility(View.GONE));
     }
 
     @Override
-    public void onResume() {
-        super.onResume();
-        if (currentBlobDirectory != null) {
-            ((AppCompatActivity) getActivity()).getSupportActionBar().setTitle(currentBlobDirectory.getPrefix());
-        }
-    }
-
-    @Override
-    public void onAttach(Context context) {
-        super.onAttach(context);
-        if (currentBlobDirectory != null) {
-            ((AppCompatActivity) getActivity()).getSupportActionBar().setTitle(currentBlobDirectory.getPrefix());
+    public void onDestroy() {
+        super.onDestroy();
+        if (recyclerViewAdapter != null) {
+            recyclerViewAdapter.destroy();
         }
     }
 
@@ -215,13 +205,16 @@ public class BlobListFragment extends Fragment
         if (view.getId() == R.id.layout2) {
             currentlySelectedBlobItemAdapterPosition = adapterPosition;
             showPopup(view);
-            return;
-        }
-
-        //only tell the parent listener if it is a folder..handle other clicks within
-        if ((item instanceof CloudBlobDirectory)) {
+        } else if ((item instanceof CloudBlobDirectory)) {
+            //only tell the parent listener if it is a folder..handle other clicks within
             ((OnFragmentInteractionListener) getActivity()).onBlobItemClicked(item);
         }
+    }
+
+    @Override
+    public void onLongClick(View view, int adapterPosition, ListBlobItem item) {
+        currentlySelectedBlobItemAdapterPosition = adapterPosition;
+        showPopup(view);
     }
 
     private void showPopup(View view) {
@@ -238,6 +231,11 @@ public class BlobListFragment extends Fragment
         listPopupWindow.show();
     }
 
+    /**
+     * The parent activity calls this method after an instance of this fragment is created.
+     * @param account
+     * @param listBlobItem
+     */
     @Override
     public void onBlobItemClick(AzureStorageAccount account, ListBlobItem listBlobItem) {
         try {
@@ -254,21 +252,11 @@ public class BlobListFragment extends Fragment
     }
 
     public void showSnackbar(final String message) {
-        getActivity().runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                Snackbar.make(BlobListFragment.this.getCoordinatorLayout(), message, Snackbar.LENGTH_SHORT).show();
-            }
-        });
+        getActivity().runOnUiThread(() -> Snackbar.make(BlobListFragment.this.getCoordinatorLayout(), message, Snackbar.LENGTH_SHORT).show());
     }
 
     public void showToast(final String message) {
-        getActivity().runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                Toast.makeText(getContext(), message, Toast.LENGTH_LONG).show();
-            }
-        });
+        getActivity().runOnUiThread(() -> Toast.makeText(getContext(), message, Toast.LENGTH_LONG).show());
     }
 
     @Override
@@ -280,24 +268,16 @@ public class BlobListFragment extends Fragment
 
     private void deletionConfirmed() {
         final CloudBlob cloudBlob = (CloudBlob) recyclerViewAdapter.getDataset().get(currentlySelectedBlobItemAdapterPosition);
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    if (cloudBlob.deleteIfExists()) {
-                        showSnackbar(BlobListFragment.this.getString(R.string.delete_confirmation));
-                        //delete this item from the local dataset and notify the adapter
-                        recyclerViewAdapter.getDataset().remove(cloudBlob);
-                        getActivity().runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                recyclerViewAdapter.notifyDataSetChanged();
-                            }
-                        });
-                    }
-                } catch (StorageException e) {
-                    showToast(BlobListFragment.this.getString(R.string.blob_delete_failed));
+        new Thread(() -> {
+            try {
+                if (cloudBlob.deleteIfExists()) {
+                    showSnackbar(BlobListFragment.this.getString(R.string.delete_confirmation));
+                    //delete this item from the local dataset and notify the adapter
+                    recyclerViewAdapter.getDataset().remove(cloudBlob);
+                    getActivity().runOnUiThread(() -> recyclerViewAdapter.notifyDataSetChanged());
                 }
+            } catch (StorageException e) {
+                showToast(BlobListFragment.this.getString(R.string.blob_delete_failed));
             }
         }).start();
     }
@@ -333,49 +313,36 @@ public class BlobListFragment extends Fragment
             case R.drawable.ic_download:
                 //download the blob
                 final Context context = getContext();
-                blobDownloadThread = new Thread(new Runnable() {
-                    @Override
-                    public void run() {
-                        //show the progress bar
-                        handler.post(new Runnable() {
-                            @Override
-                            public void run() {
-                                showProgressBar();
-                            }
-                        });
+                blobDownloadThread = new Thread(() -> {
+                    //show the progress bar
+                    handler.post(() -> showProgressBar());
 
-                        try {
-                            final String path = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).getPath();
-                            File file = new File(path);
-                            if (!file.exists()) {
-                                file.mkdirs();
-                            }
-                            String fileName = cloudBlob.getName().replace("/", "_");
-                            File blobFile = new File(file.getAbsolutePath(), fileName);
-                            if (!blobFile.exists()) {
-                                blobFile.createNewFile();
-                            }
-                            cloudBlob.downloadToFile(blobFile.getAbsolutePath());
-                            //hide the progress bar
-                            handler.post(new Runnable() {
-                                @Override
-                                public void run() {
-                                    hideProgressBar();
-                                }
-                            });
-
-                            DownloadManager downloadManager = (DownloadManager) context.getSystemService(Context.DOWNLOAD_SERVICE);
-                            downloadManager.addCompletedDownload(
-                                    fileName,
-                                    cloudBlob.getName(),
-                                    true,
-                                    Helpers.getMimeType(blobFile),
-                                    blobFile.getAbsolutePath(),
-                                    blobFile.length(),
-                                    true);
-                        } catch (Exception e) {
-                            showToast(e.getMessage());
+                    try {
+                        final String path = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).getPath();
+                        File file = new File(path);
+                        if (!file.exists()) {
+                            file.mkdirs();
                         }
+                        String fileName = cloudBlob.getName().replace("/", "_");
+                        File blobFile = new File(file.getAbsolutePath(), fileName);
+                        if (!blobFile.exists()) {
+                            blobFile.createNewFile();
+                        }
+                        cloudBlob.downloadToFile(blobFile.getAbsolutePath());
+                        //hide the progress bar
+                        handler.post(() -> hideProgressBar());
+
+                        DownloadManager downloadManager = (DownloadManager) context.getSystemService(Context.DOWNLOAD_SERVICE);
+                        downloadManager.addCompletedDownload(
+                                fileName,
+                                cloudBlob.getName(),
+                                true,
+                                Helpers.getMimeType(blobFile),
+                                blobFile.getAbsolutePath(),
+                                blobFile.length(),
+                                true);
+                    } catch (Exception e) {
+                        showToast(e.getMessage());
                     }
                 });
 
@@ -385,50 +352,37 @@ public class BlobListFragment extends Fragment
                 }
                 break;
             case R.drawable.ic_view:
-                blobOpenThread = new Thread(new Runnable() {
-                    @Override
-                    public void run() {
-                        //show the progress bar
-                        handler.post(new Runnable() {
-                            @Override
-                            public void run() {
-                                showProgressBar();
-                            }
-                        });
-                        try {
-                            final String path = getContext().getExternalCacheDir().getAbsolutePath();
-                            File cachePath = new File(path, "cache");
-                            if (!cachePath.exists()) {
-                                cachePath.mkdirs();
-                            }
-                            String fileName = cloudBlob.getName().replace("/", "_");
-                            File blobFile = new File(cachePath.getAbsolutePath(), fileName);
-                            if (!blobFile.exists()) {
-                                blobFile.createNewFile();
-                            }
-                            cloudBlob.downloadToFile(blobFile.getAbsolutePath());
-                            //hide the progress bar
-                            handler.post(new Runnable() {
-                                @Override
-                                public void run() {
-                                    hideProgressBar();
-                                }
-                            });
-
-                            String mimeType = Helpers.getMimeType(blobFile);
-                            Intent intent = new Intent(android.content.Intent.ACTION_VIEW);
-                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                                intent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-                                Uri contentUri = FileProvider.getUriForFile(getContext(), "com.myappfactory.fileprovider", blobFile);
-                                intent.setDataAndType(contentUri, mimeType);
-                            } else {
-                                intent.setDataAndType(Uri.fromFile(blobFile), mimeType);
-                            }
-
-                            startActivity(intent);
-                        } catch (Exception e) {
-                            showToast(e.getMessage());
+                blobOpenThread = new Thread(() -> {
+                    //show the progress bar
+                    handler.post(() -> showProgressBar());
+                    try {
+                        final String path = getContext().getExternalCacheDir().getAbsolutePath();
+                        File cachePath = new File(path, "cache");
+                        if (!cachePath.exists()) {
+                            cachePath.mkdirs();
                         }
+                        String fileName = cloudBlob.getName().replace("/", "_");
+                        File blobFile = new File(cachePath.getAbsolutePath(), fileName);
+                        if (!blobFile.exists()) {
+                            blobFile.createNewFile();
+                        }
+                        cloudBlob.downloadToFile(blobFile.getAbsolutePath());
+                        //hide the progress bar
+                        handler.post(() -> hideProgressBar());
+
+                        String mimeType = Helpers.getMimeType(blobFile);
+                        Intent intent = new Intent(Intent.ACTION_VIEW);
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                            intent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                            Uri contentUri = FileProvider.getUriForFile(getContext(), "com.myappfactory.fileprovider", blobFile);
+                            intent.setDataAndType(contentUri, mimeType);
+                        } else {
+                            intent.setDataAndType(Uri.fromFile(blobFile), mimeType);
+                        }
+
+                        startActivity(intent);
+                    } catch (Exception e) {
+                        showToast(e.getMessage());
                     }
                 });
 

@@ -8,7 +8,6 @@ import com.microsoft.azure.storage.blob.ListBlobItem;
 import com.pl.azurestorageexplorer.R;
 
 import java.io.File;
-import java.net.URISyntaxException;
 import java.util.Date;
 
 /**
@@ -78,5 +77,10 @@ public class Helpers {
         }
 
         return mimeType;
+    }
+
+    public static String getLastPartInPath(String path) {
+        String[] parts = path.split("/");
+        return parts[parts.length - 1];
     }
 }

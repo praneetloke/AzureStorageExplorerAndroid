@@ -27,4 +27,9 @@ public abstract class LinearRecyclerViewAdapter<T, T2 extends RecyclerView.ViewH
     public ArrayList<T> getDataset() {
         return dataset;
     }
+
+    public void destroy() {
+        dataset.clear();
+        dataset = null;
+    }
 }
