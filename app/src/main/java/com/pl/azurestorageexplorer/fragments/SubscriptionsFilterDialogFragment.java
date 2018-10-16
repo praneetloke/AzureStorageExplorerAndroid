@@ -1,7 +1,6 @@
 package com.pl.azurestorageexplorer.fragments;
 
 import android.app.Dialog;
-import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
 import android.support.v7.app.AlertDialog;
@@ -39,7 +38,7 @@ public class SubscriptionsFilterDialogFragment extends DialogFragment
 
         this.subscriptions = AzureStorageExplorerApplication.getCustomSQLiteHelper().getAzureSubscriptionsFilters();
 
-        RecyclerView recyclerView = (RecyclerView) view.findViewById(R.id.subscriptionsFilterRecyclerView);
+        RecyclerView recyclerView = view.findViewById(R.id.subscriptionsFilterRecyclerView);
         recyclerView.setHasFixedSize(true);
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getActivity());
         recyclerView.setLayoutManager(linearLayoutManager);
@@ -48,12 +47,7 @@ public class SubscriptionsFilterDialogFragment extends DialogFragment
         // Pass null as the parent view because its going in the dialog layout
         builder.setView(view)
                 // Add action buttons
-                .setNeutralButton(R.string.close, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        dialog.dismiss();
-                    }
-                });
+                .setNeutralButton(R.string.close, (dialog, which) -> dialog.dismiss());
 
         builder.setTitle("Filter Subscriptions");
 

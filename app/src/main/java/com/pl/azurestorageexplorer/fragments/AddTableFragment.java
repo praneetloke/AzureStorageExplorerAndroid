@@ -7,7 +7,6 @@ import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.AlertDialog;
-import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
@@ -41,17 +40,14 @@ public class AddTableFragment extends DialogFragment implements IAsyncTaskCallba
         // Get the layout inflater
         LayoutInflater inflater = getActivity().getLayoutInflater();
         View view = inflater.inflate(R.layout.add_table_layout, null);
-        progressBar = (ProgressBar) view.findViewById(R.id.create_table_progress_bar);
-        tableName = (EditText) view.findViewById(R.id.table_name_edit_text);
-        tableName.setOnKeyListener(new View.OnKeyListener() {
-            @Override
-            public boolean onKey(View v, int keyCode, KeyEvent event) {
-                if (keyCode == EditorInfo.IME_ACTION_GO) {
-                    createBlobContainer();
-                }
-
-                return true;
+        progressBar = view.findViewById(R.id.create_table_progress_bar);
+        tableName = view.findViewById(R.id.table_name_edit_text);
+        tableName.setOnKeyListener((v, keyCode, event) -> {
+            if (keyCode == EditorInfo.IME_ACTION_GO) {
+                createBlobContainer();
             }
+
+            return true;
         });
         // Inflate and set the layout for the dialog
         // Pass null as the parent view because its going in the dialog layout
