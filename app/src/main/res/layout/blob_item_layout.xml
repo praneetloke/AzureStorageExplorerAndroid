@@ -9,6 +9,10 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_weight="1"
+        android:background="?attr/selectableItemBackground"
+        android:clickable="true"
+        android:focusable="true"
+        android:longClickable="true"
         android:orientation="horizontal">
 
         <ImageView
@@ -16,8 +20,8 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical"
-            android:paddingLeft="15dip"
-            android:paddingRight="10dip" />
+            android:paddingStart="@dimen/blob_item_padding_start"
+            android:paddingEnd="@dimen/blob_item_padding_end" />
 
         <LinearLayout
             android:layout_width="match_parent"

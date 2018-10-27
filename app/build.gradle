@@ -10,7 +10,7 @@ android {
 
     def versionPropsFile = file('version.properties')
     if (versionPropsFile.canRead()) {
-        def Properties versionProps = new Properties()
+        Properties versionProps = new Properties()
 
         versionProps.load(new FileInputStream(versionPropsFile))
 
@@ -72,20 +72,21 @@ android {
         exclude 'META-INF/dependencies.txt'
         exclude 'META-INF/LGPL2.1'
     }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
 }
 
 dependencies {
-    implementation fileTree(dir: 'libs', include: ['*.jar'])
-
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
     implementation 'com.android.support:appcompat-v7:27.1.1'
     implementation 'com.android.support:design:27.1.1'
     implementation 'com.android.support:customtabs:27.1.1'
     implementation 'com.android.support:support-v4:27.1.1'
     implementation 'com.android.support:support-annotations:27.1.1'
-
     implementation 'com.microsoft.azure.android:azure-storage-android:1.0.0'
-
-    implementation ('com.github.praneetloke:android-oauth-client:-SNAPSHOT') {
+    implementation('com.github.praneetloke:android-oauth-client:-SNAPSHOT') {
         exclude group: 'com.google.code.findbugs', module: 'jsr305'
         exclude group: 'com.android.support', module: 'support-v4'
     }
@@ -105,7 +106,6 @@ dependencies {
     implementation('com.google.code.gson:gson:2.7') {
         exclude group: 'com.google.code.findbugs', module: 'jsr305'
     }
-
     implementation 'com.android.support.test.espresso:espresso-idling-resource:3.0.2'
     testImplementation 'junit:junit:4.12'
     testImplementation 'org.mockito:mockito-core:2.15.0'

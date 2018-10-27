@@ -18,12 +18,24 @@
         android:translationY="-6dp"
         android:visibility="gone" />
 
+    <HorizontalScrollView
+        android:id="@+id/horizontalScrollView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingTop="5dp">
+        <TextView android:id="@+id/breadcrumbsTextView"
+            android:layout_height="wrap_content"
+            android:layout_width="wrap_content"
+            android:paddingStart="@dimen/blob_item_padding_start"
+            android:paddingEnd="@dimen/blob_item_padding_end"/>
+    </HorizontalScrollView>
+
     <android.support.v7.widget.RecyclerView
         android:id="@+id/blobListRecyclerView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:clipToPadding="false"
-        android:paddingTop="5dip"
+        android:clipToPadding="true"
+        android:paddingTop="35dip"
         android:scrollbars="vertical"
         app:layout_behavior="@string/appbar_scrolling_view_behavior"
         tools:context=".MainActivity" />

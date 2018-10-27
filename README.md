@@ -3,7 +3,9 @@
 Azure Storage explorer for the Android platform
 
 # Current status
-[Alpha](https://play.google.com/apps/testing/com.pl.azurestorageexplorer)
+[Released](https://play.google.com/store/apps/details?id=com.pl.azurestorageexplorer)
+
+Sign-up for the [beta program](https://play.google.com/apps/testing/com.pl.azurestorageexplorer) to help test new features/fixes!
 
 # Current features
 - Show classic/ARM storage accounts for subscriptions

@@ -80,34 +80,24 @@ public class TableEntitiesFragment extends Fragment
     public View onCreateView(LayoutInflater layoutInflater, ViewGroup container, Bundle savedInstanceState) {
         View root = layoutInflater.inflate(R.layout.table_entities_fragment_layout, container, false);
 
-        RecyclerView recyclerView = (RecyclerView) root.findViewById(R.id.tableEntitiesRecyclerView);
+        RecyclerView recyclerView = root.findViewById(R.id.tableEntitiesRecyclerView);
         recyclerView.setHasFixedSize(true);
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getActivity());
         recyclerView.setLayoutManager(linearLayoutManager);
-        recyclerViewAdapter = new TableEntitiesRecyclerViewAdapter(new ArrayList<DynamicTableEntity>(), this);
+        recyclerViewAdapter = new TableEntitiesRecyclerViewAdapter(new ArrayList<>(), this);
         recyclerView.setAdapter(recyclerViewAdapter);
 
-        progressBar = (ProgressBar) root.findViewById(R.id.tableEntitiesProgressBar);
+        progressBar = root.findViewById(R.id.tableEntitiesProgressBar);
 
         return root;
     }
 
     private void showProgressBar() {
-        getActivity().runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                progressBar.setVisibility(View.VISIBLE);
-            }
-        });
+        getActivity().runOnUiThread(() -> progressBar.setVisibility(View.VISIBLE));
     }
 
     private void hideProgressBar() {
-        getActivity().runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                progressBar.setVisibility(View.GONE);
-            }
-        });
+        getActivity().runOnUiThread(() -> progressBar.setVisibility(View.GONE));
     }
 
     @Override
@@ -140,12 +130,7 @@ public class TableEntitiesFragment extends Fragment
             //delete this item from the local dataset and notify the adapter
             DynamicTableEntity entityToDelete = recyclerViewAdapter.getDataset().get(currentlySelectedTableEntityItemAdapterPosition);
             recyclerViewAdapter.getDataset().remove(entityToDelete);
-            getActivity().runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    recyclerViewAdapter.notifyDataSetChanged();
-                }
-            });
+            getActivity().runOnUiThread(() -> recyclerViewAdapter.notifyDataSetChanged());
             showSnackbar(getString(R.string.entity_deleted));
         } else {
             showSnackbar(getString(R.string.failed_to_delete_entity));
@@ -206,21 +191,11 @@ public class TableEntitiesFragment extends Fragment
     }
 
     public void showSnackbar(final String message) {
-        getActivity().runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                Snackbar.make(getView(), message, Snackbar.LENGTH_SHORT).show();
-            }
-        });
+        getActivity().runOnUiThread(() -> Snackbar.make(getView(), message, Snackbar.LENGTH_SHORT).show());
     }
 
     public void showToast(final String message) {
-        getActivity().runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                Toast.makeText(getContext(), message, Toast.LENGTH_LONG).show();
-            }
-        });
+        getActivity().runOnUiThread(() -> Toast.makeText(getContext(), message, Toast.LENGTH_LONG).show());
     }
 
     @Override

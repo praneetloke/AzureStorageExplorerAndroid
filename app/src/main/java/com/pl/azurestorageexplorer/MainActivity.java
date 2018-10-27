@@ -117,14 +117,14 @@ public class MainActivity extends AppCompatActivity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         //hide the title so the spinner has room
         getSupportActionBar().setDisplayShowTitleEnabled(false);
 
         fragmentStack = new Stack<>();
 
-        drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        drawer = findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
                 this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
         drawer.setDrawerListener(toggle);
@@ -132,7 +132,7 @@ public class MainActivity extends AppCompatActivity
 
         blobContainersAdapter = new BlobContainersAdapter(this, new ArrayList<CloudBlobContainerSerializable>() {
         });
-        toolbarSpinner = (Spinner) toolbar.findViewById(R.id.spinner_nav);
+        toolbarSpinner = toolbar.findViewById(R.id.spinner_nav);
         toolbarSpinner.setAdapter(blobContainersAdapter);
         toolbarSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
@@ -143,6 +143,8 @@ public class MainActivity extends AppCompatActivity
                 if (storageServiceType == StorageServiceType.BLOB) {
                     fragmentTag = BlobListFragment.class.getName();
                     item = blobContainersAdapter.getItem(position);
+                    //let's reset the blob list fragment stack because the user might have navigated into a "folder"
+                    resetBlobListFragmentStack();
                 } else if (storageServiceType == StorageServiceType.TABLE) {
                     fragmentTag = TableEntitiesFragment.class.getName();
                     item = storageTablesAdapter.getItem(position);
@@ -224,7 +226,7 @@ public class MainActivity extends AppCompatActivity
                 new DialogFragmentController(getFragmentManager(), true) {
 
                     @Override
-                    public String getRedirectUri() throws IOException {
+                    public String getRedirectUri() {
                         return Constants.AZURE_AUTH_REDIRECT_URI;
                     }
 
@@ -433,12 +435,12 @@ public class MainActivity extends AppCompatActivity
         ArrayList<AzureStorageAccount> accounts = AzureStorageExplorerApplication.getCustomSQLiteHelper().getFilteredAzureAccounts();
         storageAccountAdapter = new StorageAccountAdapter(this, accounts);
 
-        final NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
+        final NavigationView navigationView = findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
         //disable menu icon tinting
         navigationView.setItemIconTintList(null);
         //setup the spinner in the drawer layout header
-        navMenuHeaderSpinner = (ReSelectableSpinner) navigationView.getHeaderView(0).findViewById(R.id.navBarHeaderSpinner);
+        navMenuHeaderSpinner = navigationView.getHeaderView(0).findViewById(R.id.navBarHeaderSpinner);
         navMenuHeaderSpinner.setAdapter(storageAccountAdapter);
         navMenuHeaderSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
@@ -509,7 +511,7 @@ public class MainActivity extends AppCompatActivity
         });
 
         //setup the click listener for the filter icon in the nav menu header
-        LinearLayout subscriptionsFilter = (LinearLayout) navigationView.getHeaderView(0).findViewById(R.id.filterSubscriptionsLayout);
+        LinearLayout subscriptionsFilter = navigationView.getHeaderView(0).findViewById(R.id.filterSubscriptionsLayout);
         subscriptionsFilter.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -526,12 +528,6 @@ public class MainActivity extends AppCompatActivity
 
         //remove the blob list fragments that are already there
         while (fragmentStack.size() >= 2) {
-            //if we are about to pop the final child fragment, then hide the title again
-            if (fragmentStack.size() == 2) {
-                getSupportActionBar().setDisplayShowTitleEnabled(false);
-                toolbarSpinner.setVisibility(View.VISIBLE);
-            }
-
             ActivityUtils.popPreviousFragmentFromStack(getSupportFragmentManager(), fragmentStack);
         }
     }
@@ -545,16 +541,10 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public void onBackPressed() {
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        DrawerLayout drawer = findViewById(R.id.drawer_layout);
         if (drawer.isDrawerOpen(GravityCompat.START)) {
             drawer.closeDrawer(GravityCompat.START);
         } else if (fragmentStack.size() >= 2) {
-            //if we are about to pop the final child fragment, then hide the title again
-            if (fragmentStack.size() == 2) {
-                getSupportActionBar().setDisplayShowTitleEnabled(false);
-                toolbarSpinner.setVisibility(View.VISIBLE);
-            }
-
             ActivityUtils.popPreviousFragmentFromStack(getSupportFragmentManager(), fragmentStack);
         } else {
             super.onBackPressed();
@@ -563,11 +553,6 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        if (fragmentStack != null && fragmentStack.size() >= 2) {
-            getSupportActionBar().setDisplayShowTitleEnabled(true);
-            toolbarSpinner.setVisibility(View.GONE);
-        }
-
         if (storageServiceType == StorageServiceType.BLOB) {
             getMenuInflater().inflate(R.menu.blobs_toolbar_menu, menu);
         } else if (storageServiceType == StorageServiceType.TABLE) {

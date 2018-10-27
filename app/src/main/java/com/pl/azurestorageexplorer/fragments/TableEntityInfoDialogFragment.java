@@ -43,11 +43,11 @@ public class TableEntityInfoDialogFragment extends DialogFragment
         LayoutInflater inflater = getActivity().getLayoutInflater();
         View root = inflater.inflate(R.layout.table_entity_info_dialog_fragment_layout, null);
 
-        RecyclerView recyclerView = (RecyclerView) root.findViewById(R.id.entityPropertiesListRecyclerView);
+        RecyclerView recyclerView = root.findViewById(R.id.entityPropertiesListRecyclerView);
         recyclerView.setHasFixedSize(true);
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getActivity());
         recyclerView.setLayoutManager(linearLayoutManager);
-        recyclerViewAdapter = new TableEntityRecyclerViewAdapter(new HashMap<String, EntityProperty>(), this);
+        recyclerViewAdapter = new TableEntityRecyclerViewAdapter(new HashMap<>(), this);
         recyclerView.setAdapter(recyclerViewAdapter);
 
         if (getArguments() != null) {

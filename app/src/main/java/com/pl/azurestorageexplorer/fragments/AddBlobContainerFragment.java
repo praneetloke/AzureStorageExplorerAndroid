@@ -7,7 +7,6 @@ import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.AlertDialog;
-import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
@@ -41,17 +40,14 @@ public class AddBlobContainerFragment extends DialogFragment implements IAsyncTa
         // Get the layout inflater
         LayoutInflater inflater = getActivity().getLayoutInflater();
         View view = inflater.inflate(R.layout.add_blob_container_layout, null);
-        progressBar = (ProgressBar) view.findViewById(R.id.create_blob_container_progress_bar);
-        blobContainerName = (EditText) view.findViewById(R.id.blob_container_name_edit_text);
-        blobContainerName.setOnKeyListener(new View.OnKeyListener() {
-            @Override
-            public boolean onKey(View v, int keyCode, KeyEvent event) {
-                if (keyCode == EditorInfo.IME_ACTION_GO) {
-                    createBlobContainer();
-                }
-
-                return true;
+        progressBar = view.findViewById(R.id.create_blob_container_progress_bar);
+        blobContainerName = view.findViewById(R.id.blob_container_name_edit_text);
+        blobContainerName.setOnKeyListener((v, keyCode, event) -> {
+            if (keyCode == EditorInfo.IME_ACTION_GO) {
+                createBlobContainer();
             }
+
+            return true;
         });
         // Inflate and set the layout for the dialog
         // Pass null as the parent view because its going in the dialog layout

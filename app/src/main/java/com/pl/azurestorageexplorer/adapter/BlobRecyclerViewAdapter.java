@@ -15,7 +15,6 @@ import com.pl.azurestorageexplorer.adapter.interfaces.IViewHolderClickListener;
 import com.pl.azurestorageexplorer.adapter.viewholder.BlobItemViewHolder;
 import com.pl.azurestorageexplorer.util.Helpers;
 
-import java.net.URISyntaxException;
 import java.util.ArrayList;
 
 import static com.pl.azurestorageexplorer.util.Helpers.getHumanReadableLength;
@@ -46,9 +45,12 @@ public class BlobRecyclerViewAdapter extends LinearRecyclerViewAdapter<ListBlobI
         ListBlobItem blobItem = getDataset().get(position);
         boolean isFolder = !(blobItem instanceof CloudBlob);
         String name = (!isFolder) ? ((CloudBlob) blobItem).getName() : ((CloudBlobDirectory) blobItem).getPrefix();
+        name = Helpers.getLastPartInPath(name);
         TextView text1 = holder.text1;
         text1.setText(name);
         if (!isFolder) {
+            //allow long-clicks on blobs only, not folders
+            holder.allowLongClick = true;
             holder.blobSizeText.setVisibility(View.VISIBLE);
             final String size = getHumanReadableLength(((CloudBlob) blobItem).getProperties().getLength());
             holder.blobSizeText.setText(size);
@@ -65,6 +67,13 @@ public class BlobRecyclerViewAdapter extends LinearRecyclerViewAdapter<ListBlobI
     public void onClick(View view, int adapterPosition) {
         if (adapterPosition != RecyclerView.NO_POSITION) {
             recyclerViewAdapterClickListener.onClick(view, adapterPosition, this.getDataset().get(adapterPosition));
+        }
+    }
+
+    @Override
+    public void onLongClick(View view, int adapterPosition) {
+        if (adapterPosition != RecyclerView.NO_POSITION) {
+            recyclerViewAdapterClickListener.onLongClick(view, adapterPosition, this.getDataset().get(adapterPosition));
         }
     }
 }

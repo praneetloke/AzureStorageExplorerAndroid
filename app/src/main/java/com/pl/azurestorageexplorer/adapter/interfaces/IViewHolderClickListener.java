@@ -7,4 +7,12 @@ import android.view.View;
  */
 public interface IViewHolderClickListener {
     void onClick(View view, int adapterPosition);
+    /**
+     * Override this if you want to handle long-clicks.
+     * @param view
+     * @param adapterPosition
+     */
+    default void onLongClick(View view, int adapterPosition) {
+        return;
+    }
 }
